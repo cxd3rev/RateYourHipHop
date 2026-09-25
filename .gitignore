@@ -8,3 +8,5 @@ venv/
 .env.*
 *.db
 data/*.db
+mobile/node_modules/
+mobile/.expo/

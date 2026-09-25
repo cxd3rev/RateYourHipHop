@@ -485,7 +485,11 @@ h1 {
 
     height: 64px;
 
+    aspect-ratio: 1 / 1;
+
     object-fit: cover;
+
+    object-position: center;
 
     border-radius: 4px;
 
@@ -648,7 +652,13 @@ h1 {
 
     height: 280px;
 
+    aspect-ratio: 1 / 1;
+
     object-fit: cover;
+
+    object-position: center;
+
+    flex-shrink: 0;
 
     border-radius: 4px;
 
@@ -2404,7 +2414,11 @@ h1 {
 
         height: auto;
 
-        aspect-ratio: 1;
+        aspect-ratio: 1 / 1;
+
+        object-fit: cover;
+
+        object-position: center;
 
         margin: 0 auto;
     }
@@ -2865,8 +2879,13 @@ body {
 
 .discovery-cover {
     width: min(78vw, 360px);
-    aspect-ratio: 1;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
+    object-position: center;
+    flex-shrink: 0;
+    align-self: center;
     border-radius: 8px;
     margin: 0 auto;
     box-shadow: 0 24px 60px rgba(0,0,0,0.55);
@@ -2990,8 +3009,10 @@ body {
 .inbox-row img {
     width: 56px;
     height: 56px;
+    aspect-ratio: 1 / 1;
     border-radius: 8px;
     object-fit: cover;
+    object-position: center;
 }
 
 .activity-copy {
@@ -3272,8 +3293,10 @@ body {
 
 .poster-cover {
     width: 100%;
-    aspect-ratio: 1;
+    height: auto;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
+    object-position: center;
     display: block;
 }
 

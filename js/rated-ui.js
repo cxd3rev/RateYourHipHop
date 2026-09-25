@@ -836,7 +836,7 @@ function renderProfilePage() {
         if (currentUser.profile_picture) {
             avatar.innerHTML = `<img src="${currentUser.profile_picture}" alt="">`;
         } else {
-            avatar.innerHTML = `<img src="assets/rated-icon-light.png?v=30" alt="RATED">`;
+            avatar.innerHTML = `<img src="assets/rated-icon-light.png?v=31" alt="RATED">`;
         }
     }
     if (name) {
@@ -1019,7 +1019,7 @@ function createPosterCard(album, options = {}) {
                                 </strong>
                             </div>
                         </div>
-                        <img class="poster-logo" src="assets/rated-wordmark-dark.png?v=28" alt="RATED">
+                        <img class="poster-logo" src="assets/rated-wordmark-dark.png?v=31" alt="RATED">
                         <p class="poster-meta">${metaBits.join(" · ")}</p>
                     </div>
                 </div>
