@@ -774,19 +774,29 @@ function setupDiscoveryFeed() {
             const idx = Number(best.dataset.discoveryIndex);
             if (!Number.isNaN(idx) && idx !== discoveryIndex) {
                 discoveryIndex = idx;
-                // Rebuild window when near edges
-                const localPos = discoveryIndex - discoveryWindowStart;
-                if (localPos <= 1 || localPos >= DISCOVERY_WINDOW - 2) {
-                    const keepId = discoveryList[discoveryIndex]?.id;
-                    renderDiscoveryFeed();
-                    const again = feed.querySelector(`[data-album-id="${keepId}"]`);
-                    if (again) {
-                        again.scrollIntoView({ block: "start" });
-                    }
-                }
             }
         });
     }, { passive: true });
+
+    const shiftWindow = () => {
+        const localPos = discoveryIndex - discoveryWindowStart;
+        if (localPos > 1 && localPos < DISCOVERY_WINDOW - 2) {
+            return;
+        }
+        const keepId = discoveryList[discoveryIndex] && discoveryList[discoveryIndex].id;
+        renderDiscoveryFeed();
+        const again = feed.querySelector(`[data-album-id="${keepId}"]`);
+        if (again) {
+            again.scrollIntoView({ block: "start", behavior: "auto" });
+        }
+    };
+
+    let settleTimer = null;
+    feed.addEventListener("scroll", () => {
+        clearTimeout(settleTimer);
+        settleTimer = setTimeout(shiftWindow, 180);
+    }, { passive: true });
+    feed.addEventListener("scrollend", shiftWindow);
 
     // Horizontal swipe to open tracklist
     let touchX = null;

@@ -1,4 +1,4 @@
-const CACHE = "rated-app-v49";
+const CACHE = "rated-app-v50";
 const SHELL = [
     "./",
     "./index.html",
