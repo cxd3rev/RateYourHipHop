@@ -431,23 +431,51 @@ function renderBestAlbums() {
         return;
     }
 
-    const ranked = albums
-        .map(album => ({
-            album,
-            score: getAlbumGlobalRating(album.id)
-        }))
-        .filter(entry => entry.score !== null)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 60);
+    const groups = new Map();
+    albums.forEach(album => {
+        const score = getAlbumGlobalRating(album.id);
+        if (score === null) {
+            return;
+        }
+        const tags = (typeof getAlbumGenreTags === "function" ? getAlbumGenreTags(album) : ["Hip-Hop"])
+            .filter(tag => tag !== "Hip-Hop" && tag !== "Rap");
+        const keys = tags.length ? tags : ["Hip-Hop"];
+        keys.forEach(tag => {
+            if (!groups.has(tag)) {
+                groups.set(tag, []);
+            }
+            groups.get(tag).push({ album, score });
+        });
+    });
 
-    if (!ranked.length) {
+    const sections = [...groups.entries()]
+        .map(([tag, list]) => ({
+            tag,
+            list: list.sort((a, b) => b.score - a.score).slice(0, 20)
+        }))
+        .filter(section => section.list.length)
+        .sort((a, b) => b.list[0].score - a.list[0].score);
+
+    if (!sections.length) {
         box.innerHTML = `<div class="empty-state">No community scores yet.</div>`;
         return;
     }
 
-    box.innerHTML = ranked
-        .map((entry, index) => createAlbumCard(entry.album, false, index + 1))
-        .join("");
+    box.innerHTML = sections.map(section => `
+        <section class="new-section">
+            <h2>${escapeHtml(section.tag)}</h2>
+            <div class="new-row">
+                ${section.list.map(({ album, score }) => `
+                    <button type="button" class="new-card" onclick="openAlbum(${album.id})">
+                        <img src="${coverSrc(album.cover, 250)}" alt="" loading="lazy" width="148" height="148">
+                        <strong>${escapeHtml(album.title)}</strong>
+                        <span>${escapeHtml(album.artist)}</span>
+                        <em>${Number(score).toFixed(1)}</em>
+                    </button>
+                `).join("")}
+            </div>
+        </section>
+    `).join("");
 }
 
 /* ---------- new releases ---------- */

@@ -3269,10 +3269,16 @@ body {
     }
 }
 
-.home-friends-feed,
-.best-albums-panel {
+.home-friends-feed {
     padding: 16px;
     padding-bottom: calc(24px + var(--tabbar-h) + env(safe-area-inset-bottom));
+}
+
+.best-albums-panel {
+    overflow: auto;
+    padding: 8px 16px 96px;
+    height: calc(100dvh - var(--nav-height) - 108px);
+    -webkit-overflow-scrolling: touch;
 }
 
 .activity-card,
