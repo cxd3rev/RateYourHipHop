@@ -3874,24 +3874,30 @@ body {
 
 .poster-card.is-large .poster-flip {
     position: relative;
-    min-height: min(78dvh, 680px);
+    height: min(78dvh, 680px);
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0.15, 0.2, 1);
     cursor: pointer;
 }
 
+.poster-card.is-flipped .poster-flip {
+    transform: rotateY(180deg);
+}
+
+.poster-card.is-large .poster-face {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: rotateY(0deg);
+}
+
 .poster-card.is-large .poster-back {
-    display: none;
-}
-
-.poster-card.is-flipped .poster-front {
-    display: none;
-}
-
-.poster-card.is-flipped .poster-back {
     display: flex;
-    position: relative;
-    inset: auto;
-    transform: none;
-    min-height: min(78dvh, 680px);
+    transform: rotateY(180deg);
 }
 
 .poster-card.is-large .poster-tracks {
@@ -3904,15 +3910,6 @@ body {
     line-height: 1.45;
     margin: 8px 0 12px;
     color: #fff;
-}
-
-.poster-card.is-large .poster-tracks li {
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) auto;
-    gap: 8px;
-    padding: 7px 0;
-    font-size: 15px;
-    line-height: 1.3;
 }
 
 .poster-card.is-large .poster-title {
@@ -3949,23 +3946,13 @@ body {
     display: none;
 }
 
-.poster-card.is-large .poster-body {
-    gap: 18px;
-}
-
-.poster-card.is-large .poster-tracks {
-    font-size: 9px;
-    line-height: 1.38;
-}
-
-.poster-card.is-large.is-tight .poster-tracks {
-    font-size: 7.5px;
-    line-height: 1.28;
-}
-
-.poster-card.is-large.is-compact .poster-tracks {
-    font-size: 6.5px;
-    line-height: 1.2;
+.poster-card.is-large .poster-tracks li {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 15px;
+    line-height: 1.3;
 }
 
 .poster-card.is-large .poster-artist {
