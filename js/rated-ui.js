@@ -1348,68 +1348,78 @@ function getRatedAlbumsForProfile() {
     });
 }
 
+function posterScoreRow(yours) {
+    const text = yours !== null && yours !== undefined ? Number(yours).toFixed(1) : "—";
+    return `
+        <div class="poster-score-row">
+            <strong>${text}</strong>
+            <img class="poster-logo" src="assets/rated-mark-light.png?v=49" alt="RATED">
+        </div>
+    `;
+}
+
+function posterWash(album) {
+    return `
+        <div class="poster-wash" aria-hidden="true">
+            <img src="${coverSrc(album.cover, 80)}" alt="">
+        </div>
+    `;
+}
+
 function createPosterCard(album, options = {}) {
     const yours = getAlbumRating(album.id);
-    const trackCount = album.songs.length;
-    const compact = trackCount > 16 ? "is-compact" : trackCount > 12 ? "is-tight" : "";
+    const large = Boolean(options.large);
+    const front = `
+        <div class="poster-face poster-front">
+            ${posterWash(album)}
+            <img
+                class="poster-cover"
+                src="${coverSrc(album.cover, large ? 500 : 250)}"
+                alt="${escapeHtml(album.title)}"
+                loading="lazy"
+                decoding="async"
+                width="250"
+                height="250"
+            >
+            <div class="poster-copy">
+                <h3 class="poster-title">${escapeHtml(album.title)}</h3>
+                <p class="poster-artist">${escapeHtml(album.artist)}</p>
+                ${posterScoreRow(yours)}
+            </div>
+        </div>
+    `;
+
+    if (!large) {
+        return `
+            <article class="poster-card" data-poster-album="${album.id}" onclick="openPosterModal(${album.id})">
+                ${front}
+            </article>
+        `;
+    }
 
     const tracks = album.songs.map((song, index) => {
-        const globalSong = getSongGlobalRating(album.id, index);
-        const scoreText = globalSong !== null && globalSong !== undefined
-            ? Number(globalSong).toFixed(1)
+        const songScore = getSongRating(album.id, index);
+        const scoreText = songScore !== null && songScore !== undefined
+            ? Number(songScore).toFixed(1)
             : "—";
         return `
             <li>
-                <span class="poster-track-num">${index + 1}.</span>
+                <span class="poster-track-num">${index + 1}</span>
                 <span class="poster-track-name">${escapeHtml(song)}</span>
                 <span class="poster-track-score">${scoreText}</span>
             </li>
         `;
     }).join("");
 
-    const metaBits = [];
-    if (album.songs && album.songs.length) {
-        metaBits.push(`${album.songs.length} TRACKS`);
-    }
-    if (album.year) {
-        metaBits.push(`RELEASED ${album.year}`);
-    }
-
     return `
-        <article
-            class="poster-card ${compact} ${options.large ? "is-large" : ""}"
-            data-poster-album="${album.id}"
-            onclick="openPosterModal(${album.id})"
-        >
-            <div class="poster-inner">
-                <div class="poster-wash" aria-hidden="true">
-                    <img src="${coverSrc(album.cover, 80)}" alt="">
-                </div>
-                <img
-                    class="poster-cover"
-                    src="${coverSrc(album.cover, options.large ? 500 : 250)}"
-                    alt="${escapeHtml(album.title)}"
-                    loading="lazy"
-                    decoding="async"
-                    width="250"
-                    height="250"
-                >
-                <div class="poster-body">
+        <article class="poster-card is-large" data-poster-album="${album.id}">
+            <button type="button" class="poster-close" onclick="event.stopPropagation(); closePosterModal()" aria-label="Close">×</button>
+            <div class="poster-flip" onclick="flipPosterCard(this)">
+                ${front}
+                <div class="poster-face poster-back">
+                    ${posterWash(album)}
                     <ol class="poster-tracks">${tracks}</ol>
-                    <div class="poster-side">
-                        <p class="poster-artist">${escapeHtml(album.artist)}</p>
-                        <h3 class="poster-title">${escapeHtml(album.title)}</h3>
-                        <div class="poster-scores">
-                            <div class="poster-score-you">
-                                <span>YOU</span>
-                                <div class="poster-score-row">
-                                    <strong>${yours !== null ? yours.toFixed(1) : "—"}</strong>
-                                    <img class="poster-logo" src="assets/rated-mark-light.png?v=48" alt="RATED">
-                                </div>
-                            </div>
-                        </div>
-                        ${metaBits.length ? `<p class="poster-meta">${metaBits.join(" · ")}</p>` : ""}
-                    </div>
+                    ${posterScoreRow(yours)}
                 </div>
             </div>
         </article>
@@ -1437,11 +1447,14 @@ function openPosterModal(albumId) {
         return;
     }
     body.innerHTML = createPosterCard(album, { large: true });
-    const card = body.querySelector(".poster-card");
-    if (card) {
-        card.onclick = null;
-    }
     modal.classList.remove("hidden");
+}
+
+function flipPosterCard(flip) {
+    const card = flip && flip.closest ? flip.closest(".poster-card") : null;
+    if (card) {
+        card.classList.toggle("is-flipped");
+    }
 }
 
 function closePosterModal() {
