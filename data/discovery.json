@@ -1,0 +1,499 @@
+{
+  "generatedAt": "2026-09-25T17:44:23.723Z",
+  "droppedToday": [],
+  "thisWeek": [
+    {
+      "provider": "deezer",
+      "providerId": "1075812662",
+      "title": "MOSSEBA",
+      "artist": "ANS",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/2eb4304b144c815f3b28a2f3e75a4b5c/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-09-20",
+      "projectType": "album",
+      "trackCount": 9,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "1066927981",
+      "title": "shelf",
+      "artist": "Luther",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/3465cd1f03e38b0318422c31d4b064eb/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-09-18",
+      "projectType": "album",
+      "trackCount": 15,
+      "genres": [
+        "Hip-Hop"
+      ]
+    }
+  ],
+  "recent": [
+    {
+      "provider": "deezer",
+      "providerId": "1073801602",
+      "title": "Matière Noire",
+      "artist": "Djadja & Dinaz",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/f7515041ae20888ddc327663238a3395/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-09-16",
+      "projectType": "album",
+      "trackCount": 15,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "1061526172",
+      "title": "365",
+      "artist": "Nicko Real lion",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/042713d6f61c7cd04b87eb50ccec6d69/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-08-28",
+      "projectType": "ep",
+      "trackCount": 6,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "913341691",
+      "title": "Jeune Morty Vol.1",
+      "artist": "Jeune Morty",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/4356fc7ed64664b2d9edb4c49518bb25/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-03-27",
+      "projectType": "album",
+      "trackCount": 20,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "1071187942",
+      "title": "Acte 1",
+      "artist": "SINEKARA",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/13061f4ba5e33062880928ab95f470a8/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-09-04",
+      "projectType": "ep",
+      "trackCount": 6,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "696954181",
+      "title": "QALF infinity",
+      "artist": "Damso",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/6cc51dfb71ae254d9051f77cd54c30f1/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2023-11-06",
+      "projectType": "album",
+      "trackCount": 30,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "743460571",
+      "title": "Montagnes Russes",
+      "artist": "Lujipeka",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/5eb857b61718dec1c7ba641ad7016d2c/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2025-04-17",
+      "projectType": "album",
+      "trackCount": 26,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "793661091",
+      "title": "Némésis",
+      "artist": "Reyzo",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/bdab9b7f5d7756b83bdb7178521a34ab/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2025-08-11",
+      "projectType": "ep",
+      "trackCount": 5,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "1001425121",
+      "title": "MALVADO - RÉÉDITION",
+      "artist": "Lesram",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/892c8b52c7aa7646ef4ef8bab326a02d/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-06-26",
+      "projectType": "album",
+      "trackCount": 18,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "966265691",
+      "title": "Extra-lucide",
+      "artist": "disiz",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/16fd7c3a81c5a4aad874fdc76609dde0/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2012-10-29",
+      "projectType": "album",
+      "trackCount": 25,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "262791492",
+      "title": "All Eyez On Me",
+      "artist": "2Pac",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/7856515f9e28265943f125fad02f63b1/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2001-03-06",
+      "projectType": "album",
+      "trackCount": 27,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "1070628562",
+      "title": "Entre Parenthèses",
+      "artist": "RCKNSQT",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/63f1efed6ca84c2f12c65fbe99e7581f/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-08-28",
+      "projectType": "album",
+      "trackCount": 13,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "53387732",
+      "title": "#SantanaWorld (+)",
+      "artist": "Tay-K",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/534f933b9d8c0b086e4d719e6484b5ee/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2017-12-15",
+      "projectType": "album",
+      "trackCount": 10,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "459712615",
+      "title": "SAMSON: THE ALBUM",
+      "artist": "CHIKA",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/fc0deaf63ddc8558c7c817441df267fe/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2023-07-28",
+      "projectType": "album",
+      "trackCount": 20,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "768420091",
+      "title": "7/7 : 24/24",
+      "artist": "R2",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/0ef4eab89cf7404574d667a927054a52/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2025-06-27",
+      "projectType": "album",
+      "trackCount": 17,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "39949511",
+      "title": "DAMN.",
+      "artist": "Kendrick Lamar",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/7ce6b8452fae425557067db6e6a1cad5/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2017-04-14",
+      "projectType": "album",
+      "trackCount": 14,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "1013399091",
+      "title": "Réussir ou Mourir",
+      "artist": "Diddi Trix",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/edf9b4607e9c990e7c9d9342b7781f92/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2026-06-26",
+      "projectType": "album",
+      "trackCount": 12,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "168366422",
+      "title": "LMF",
+      "artist": "Freeze Corleone",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/b1992b21b96b9ba7b10af14ad49d842d/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2020-09-10",
+      "projectType": "album",
+      "trackCount": 17,
+      "genres": [
+        "Hip-Hop"
+      ]
+    },
+    {
+      "provider": "deezer",
+      "providerId": "740854321",
+      "title": "SANTANA MONEY GANG",
+      "artist": "Sfera Ebbasta",
+      "cover": "https://cdn-images.dzcdn.net/images/cover/7aa3817cf5e0886a6f987f35d827e8d6/1000x1000-000000-80-0-0.jpg",
+      "releaseDate": "2025-04-10",
+      "projectType": "album",
+      "trackCount": 12,
+      "genres": [
+        "Hip-Hop"
+      ]
+    }
+  ],
+  "newArtists": [
+    {
+      "providerId": "167085597",
+      "name": "ANS",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "MOSSEBA",
+      "releaseDate": "2026-09-20",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "9930130",
+      "name": "Djadja & Dinaz",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Matière Noire",
+      "releaseDate": "2026-09-16",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "161626742",
+      "name": "Luther",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "shelf",
+      "releaseDate": "2026-09-18",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "100067022",
+      "name": "Nicko Real lion",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "365",
+      "releaseDate": "2026-08-28",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "101165312",
+      "name": "Jeune Morty",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Jeune Morty Vol.1",
+      "releaseDate": "2026-03-27",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "402062011",
+      "name": "SINEKARA",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Acte 1",
+      "releaseDate": "2026-09-04",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "9197980",
+      "name": "Damso",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "QALF infinity",
+      "releaseDate": "2023-11-06",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "7172552",
+      "name": "Lujipeka",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Montagnes Russes",
+      "releaseDate": "2025-04-17",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "270143252",
+      "name": "Reyzo",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Némésis",
+      "releaseDate": "2025-08-11",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "11949001",
+      "name": "Lesram",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "MALVADO - RÉÉDITION",
+      "releaseDate": "2026-06-26",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "292",
+      "name": "disiz",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Extra-lucide",
+      "releaseDate": "2012-10-29",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "167095",
+      "name": "2Pac",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "All Eyez On Me",
+      "releaseDate": "2001-03-06",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "86142982",
+      "name": "RCKNSQT",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Entre Parenthèses",
+      "releaseDate": "2026-08-28",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "12777963",
+      "name": "Tay-K",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "#SantanaWorld (+)",
+      "releaseDate": "2017-12-15",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "1311109",
+      "name": "CHIKA",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "SAMSON: THE ALBUM",
+      "releaseDate": "2023-07-28",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "249270492",
+      "name": "R2",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "7/7 : 24/24",
+      "releaseDate": "2025-06-27",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "525046",
+      "name": "Kendrick Lamar",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "DAMN.",
+      "releaseDate": "2017-04-14",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "54856202",
+      "name": "Diddi Trix",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "Réussir ou Mourir",
+      "releaseDate": "2026-06-26",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "13755123",
+      "name": "Freeze Corleone",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "LMF",
+      "releaseDate": "2020-09-10",
+      "discoveryStatus": "new"
+    },
+    {
+      "providerId": "7371074",
+      "name": "Sfera Ebbasta",
+      "image": "",
+      "genres": [
+        "Hip-Hop"
+      ],
+      "latestProject": "SANTANA MONEY GANG",
+      "releaseDate": "2025-04-10",
+      "discoveryStatus": "new"
+    }
+  ],
+  "stats": {
+    "newProjects": 20,
+    "newArtists": 20,
+    "updatedArtists": 0,
+    "duplicates": 0,
+    "errors": 0,
+    "status": "success",
+    "ranAt": "2026-09-25T17:44:23.723Z"
+  }
+}

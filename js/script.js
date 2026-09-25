@@ -1387,6 +1387,10 @@ function openArtist(artistName) {
             )
             .join("");
 
+    if (typeof enhanceArtistHeroActions === "function") {
+        enhanceArtistHeroActions(artist.name);
+    }
+
 }
 
 
@@ -3344,7 +3348,13 @@ function updateDial() {
         }
 
 
+        // Live album average on every drag tick (sticky + hero + discovery).
+        // Avoid updateCurrentSongScoreDisplay / placeSongRater mid-drag.
         updateAlbumScoreChrome();
+
+        if (typeof updateTrackProgressChrome === "function") {
+            updateTrackProgressChrome();
+        }
 
         return;
 
@@ -4050,6 +4060,20 @@ function updateAlbumScoreChrome() {
         );
 
     }
+
+
+    // Keep discovery "YOUR RATING" in sync while rating (if card is in DOM).
+    document
+        .querySelectorAll(
+            `.discovery-card[data-album-id="${currentAlbum.id}"] .discovery-you`
+        )
+        .forEach(el => {
+
+            el.textContent = text;
+
+            applyScoreColor(el, score);
+
+        });
 
 
     updateRainbowDot(score);
@@ -5666,6 +5690,12 @@ function applySearch() {
                 album.genre
                     .toLowerCase()
                     .includes(query)
+
+                ||
+
+                (album.songs || []).some(song =>
+                    String(song).toLowerCase().includes(query)
+                )
 
                 ||
 

@@ -76,7 +76,24 @@ function toggleCollectAlbum(albumId, event) {
 }
 
 function isArtistSaved(name) {
-    return readSaveList("Artists").includes(name);
+    return readSaveList("Artists").includes(String(name || ""));
+}
+
+function refreshSaveArtistButtons(name) {
+    const artistName = String(name || "");
+    const saved = isArtistSaved(artistName);
+    document.querySelectorAll("[data-save-artist]").forEach(btn => {
+        if (btn.getAttribute("data-save-artist") !== artistName) {
+            return;
+        }
+        btn.classList.toggle("is-saved", saved);
+        btn.setAttribute("aria-pressed", saved ? "true" : "false");
+        if (btn.classList.contains("discovery-save")) {
+            btn.textContent = saved ? "Saved" : "Save";
+        } else if (btn.classList.contains("artist-save-chip")) {
+            btn.textContent = `${artistName} · ${saved ? "Saved" : "Save"}`;
+        }
+    });
 }
 
 function toggleSaveArtist(name, event) {
@@ -86,18 +103,72 @@ function toggleSaveArtist(name, event) {
     }
     if (!currentUser) {
         openAuth();
-        return;
+        return false;
     }
+    const artistName = String(name || "");
     let list = readSaveList("Artists");
-    if (list.includes(name)) {
-        list = list.filter(x => x !== name);
+    if (list.includes(artistName)) {
+        list = list.filter(x => x !== artistName);
     } else {
-        list.push(name);
+        list.push(artistName);
     }
     writeSaveList("Artists", list);
-    if (typeof renderProfilePage === "function") {
+    refreshSaveArtistButtons(artistName);
+    if (profileCollectionTab === "artists") {
         renderProfileCollections();
     }
+    return list.includes(artistName);
+}
+
+function artistSaveOnclick(name) {
+    return String(name || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'");
+}
+
+function savedArtistPhotoSrc(name) {
+    const photo =
+        typeof artistPhotoSrc === "function"
+            ? artistPhotoSrc(name)
+            : null;
+    if (photo) {
+        return photo;
+    }
+    const artist =
+        typeof getArtistDirectory === "function"
+            ? getArtistDirectory().find(item => item.name === name)
+            : null;
+    if (artist && artist.albums && artist.albums[0]) {
+        return coverSrc(artist.albums[0].cover);
+    }
+    return "";
+}
+
+function enhanceArtistHeroActions(artistName) {
+    const hero = document.getElementById("artistHero");
+    if (!hero || !artistName) {
+        return;
+    }
+    const details = hero.querySelector(".album-details");
+    if (!details) {
+        return;
+    }
+    let wrap = details.querySelector(".artist-extra-actions");
+    if (!wrap) {
+        wrap = document.createElement("div");
+        wrap.className = "artist-extra-actions album-extra-actions";
+        details.appendChild(wrap);
+    }
+    const saved = isArtistSaved(artistName);
+    wrap.innerHTML = `
+        <button
+            type="button"
+            class="discovery-save ${saved ? "is-saved" : ""}"
+            data-save-artist="${escapeHtml(artistName)}"
+            aria-pressed="${saved ? "true" : "false"}"
+            onclick="toggleSaveArtist('${artistSaveOnclick(artistName)}', event)"
+        >${saved ? "Saved" : "Save"}</button>
+    `;
 }
 
 function isGenreSaved(tag) {
@@ -280,6 +351,7 @@ function setHomeTab(tab) {
     const discovery = document.getElementById("discoveryFeed");
     const friendsFeed = document.getElementById("homeFriendsFeed");
     const best = document.getElementById("bestAlbumsPanel");
+    const fresh = document.getElementById("newReleasesPanel");
 
     if (discovery) {
         discovery.classList.toggle("hidden", tab !== "albums");
@@ -290,6 +362,9 @@ function setHomeTab(tab) {
     if (best) {
         best.classList.toggle("hidden", tab !== "best");
     }
+    if (fresh) {
+        fresh.classList.toggle("hidden", tab !== "new");
+    }
 
     if (tab === "albums") {
         renderDiscoveryFeed();
@@ -297,6 +372,8 @@ function setHomeTab(tab) {
         renderHomeFriendsActivity();
     } else if (tab === "best") {
         renderBestAlbums();
+    } else if (tab === "new") {
+        renderNewReleases();
     }
 }
 
@@ -373,6 +450,145 @@ function renderBestAlbums() {
         .join("");
 }
 
+/* ---------- new releases ---------- */
+
+function localDiscoveryPayload() {
+    const currentYear = new Date().getFullYear();
+    const recent = albums
+        .filter(album => Number(album.year) >= currentYear - 1)
+        .slice(0, 24)
+        .map(album => ({
+            localId: album.id,
+            title: album.title,
+            artist: album.artist,
+            cover: album.cover,
+            releaseDate: album.year ? String(album.year) : "",
+            projectType: "album",
+            trackCount: (album.songs || []).length,
+            genres: [album.genre || "Hip-Hop"]
+        }));
+    const names = {};
+    const newArtists = [];
+    recent.forEach(card => {
+        const key = card.artist.toLowerCase();
+        if (names[key]) return;
+        names[key] = true;
+        const known = albums.filter(album => album.artist.toLowerCase() === key).length;
+        newArtists.push({
+            name: card.artist,
+            image: "",
+            genres: card.genres,
+            latestProject: card.title,
+            releaseDate: card.releaseDate,
+            discoveryStatus: known <= 2 ? "new" : known <= 6 ? "emerging" : "established"
+        });
+    });
+    return {
+        source: "local",
+        droppedToday: [],
+        thisWeek: [],
+        recent,
+        newArtists: newArtists.slice(0, 16)
+    };
+}
+
+function openDiscoveryCard(card) {
+    if (card.localId) {
+        openAlbum(card.localId);
+        return;
+    }
+    const found = albums.find(album =>
+        album.title.toLowerCase() === String(card.title || "").toLowerCase()
+        && album.artist.toLowerCase() === String(card.artist || "").toLowerCase()
+    );
+    if (found) {
+        openAlbum(found.id);
+    }
+}
+
+function escapeNewText(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function discoveryCard(card, index) {
+    const score = card.localId ? getAlbumGlobalRating(card.localId) : null;
+    return `
+        <button type="button" class="new-card" data-new-index="${index}">
+            <img src="${card.cover || ""}" alt="">
+            <strong>${escapeNewText(card.title)}</strong>
+            <span>${escapeNewText(card.artist)}</span>
+            <em>${escapeNewText(card.releaseDate)} · ${escapeNewText(card.projectType || "album")}${card.trackCount ? " · " + card.trackCount + " tracks" : ""}</em>
+            ${score !== null && score !== undefined ? `<b>${score}</b>` : ""}
+        </button>
+    `;
+}
+
+function artistDiscoveryCard(artist) {
+    const safe = String(artist.name || "").replace(/"/g, "&quot;");
+    return `
+        <button type="button" class="new-card new-artist-card" data-artist="${safe}">
+            <span class="new-artist-mark">${(artist.name || "?").slice(0, 1)}</span>
+            <strong>${escapeNewText(artist.name)}</strong>
+            <span>${escapeNewText((artist.genres || []).join(" · "))}</span>
+            <em>${escapeNewText(artist.latestProject)}</em>
+            <b class="discovery-pill">${artist.discoveryStatus || "new"}</b>
+        </button>
+    `;
+}
+
+async function renderNewReleases() {
+    const box = document.getElementById("newReleasesPanel");
+    if (!box) return;
+    box.innerHTML = `<div class="empty-state">Loading new releases…</div>`;
+    let payload = null;
+    try {
+        const response = await fetch("api/discovery");
+        if (response.ok) {
+            payload = await response.json();
+        }
+    } catch {
+        payload = null;
+    }
+    if (!payload || payload.source === "local" && !payload.recent) {
+        payload = localDiscoveryPayload();
+    } else if (payload.source === "local") {
+        payload = localDiscoveryPayload();
+    }
+    const section = (title, items, renderer) => {
+        if (!items || !items.length) return "";
+        return `
+            <section class="new-section">
+                <h2>${title}</h2>
+                <div class="new-row">${items.map((item, index) => renderer(item, index)).join("")}</div>
+            </section>
+        `;
+    };
+    window.__ratedNewCards = []
+        .concat(payload.droppedToday || [])
+        .concat(payload.thisWeek || [])
+        .concat(payload.recent || []);
+    const html = [
+        section("Dropped today", payload.droppedToday, (card, index) => discoveryCard(card, index)),
+        section("This week", payload.thisWeek, (card, index) => discoveryCard(card, (payload.droppedToday || []).length + index)),
+        section("Recently dropped", payload.recent, (card, index) => discoveryCard(card, (payload.droppedToday || []).length + (payload.thisWeek || []).length + index)),
+        section("New artists", payload.newArtists, artistDiscoveryCard)
+    ].join("");
+    box.innerHTML = html || `<div class="empty-state">No new Hip-Hop releases yet.</div>`;
+    box.querySelectorAll("[data-new-index]").forEach(button => {
+        button.addEventListener("click", () => {
+            const card = window.__ratedNewCards[Number(button.dataset.newIndex)];
+            if (card) openDiscoveryCard(card);
+        });
+    });
+    box.querySelectorAll("[data-artist]").forEach(button => {
+        button.addEventListener("click", () => openArtist(button.dataset.artist));
+    });
+}
+
 /* ---------- discovery feed ---------- */
 
 function buildDiscoveryList(source) {
@@ -423,7 +639,7 @@ function renderDiscoveryFeed(list) {
     requestAnimationFrame(() => {
         const current = feed.querySelector(`[data-discovery-index="${discoveryIndex}"]`);
         if (current) {
-            current.scrollIntoView({ block: "nearest", behavior: "instant" in window ? "instant" : "auto" });
+            current.scrollIntoView({ block: "start", behavior: "instant" in window ? "instant" : "auto" });
         }
         slice.forEach(album => extractCoverPalette(album));
     });
@@ -441,30 +657,57 @@ function createDiscoveryCard(album, index) {
             data-album-id="${album.id}"
         >
             <div class="discovery-stage">
-                <img
-                    class="discovery-cover"
-                    src="${coverSrc(album.cover, 500)}"
-                    alt="${escapeHtml(album.title)}"
-                    loading="${Math.abs(index - discoveryIndex) <= 1 ? "eager" : "lazy"}"
-                    decoding="async"
-                    width="500"
-                    height="500"
-                >
+                <div class="discovery-cover-slot">
+                    <img
+                        class="discovery-cover"
+                        src="${coverSrc(album.cover, 500)}"
+                        alt="${escapeHtml(album.title)}"
+                        loading="${Math.abs(index - discoveryIndex) <= 1 ? "eager" : "lazy"}"
+                        decoding="async"
+                        width="500"
+                        height="500"
+                    >
+                </div>
                 <div class="discovery-meta">
-                    <h2 class="discovery-title">${escapeHtml(album.title)}</h2>
-                    <p class="discovery-artist">
-                        ${
-                            splitArtistNames(album.artist)
-                                .map(name => `
-                                    <span
-                                        class="artist-link"
-                                        data-artist="${encodeURIComponent(name)}"
-                                        onclick="openArtistFromEvent(event)"
-                                    >${escapeHtml(name)}</span>
-                                `)
-                                .join(" & ")
-                        }
-                    </p>
+                    <div class="discovery-title-row">
+                        <div class="discovery-title-text">
+                            <h2 class="discovery-title">${escapeHtml(album.title)}</h2>
+                            <p class="discovery-artist">
+                                ${
+                                    splitArtistNames(album.artist)
+                                        .map(name => `
+                                            <span
+                                                class="artist-link"
+                                                data-artist="${encodeURIComponent(name)}"
+                                                onclick="openArtistFromEvent(event)"
+                                            >${escapeHtml(name)}</span>
+                                        `)
+                                        .join(" & ")
+                                }
+                            </p>
+                        </div>
+                        <div class="discovery-title-scores" aria-label="Ratings">
+                            <span class="discovery-score" title="Your rating">
+                                <svg class="discovery-score-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                                    <circle cx="12" cy="8" r="3.6" fill="currentColor"/>
+                                    <path d="M5.2 19.2c.7-3.4 3.3-5.2 6.8-5.2s6.1 1.8 6.8 5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                                <strong class="discovery-you" ${yours !== null ? `style="${scoreColorStyle(yours)}"` : ""}>
+                                    ${yours !== null ? yours.toFixed(1) : "—"}
+                                </strong>
+                            </span>
+                            <span class="discovery-score" title="Community rating">
+                                <svg class="discovery-score-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+                                    <circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                                    <ellipse cx="12" cy="12" rx="3.2" ry="8.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                                    <path d="M4.2 12h15.6M5.4 7.6h13.2M5.4 16.4h13.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                                <strong class="discovery-community" ${community !== null ? `style="${scoreColorStyle(community)}"` : ""}>
+                                    ${community !== null ? community.toFixed(1) : "—"}
+                                </strong>
+                            </span>
+                        </div>
+                    </div>
                     <div class="discovery-tags">
                         ${tags.map(tag => `
                             <button
@@ -473,20 +716,6 @@ function createDiscoveryCard(album, index) {
                                 onclick="toggleSaveGenre('${tag.replace(/'/g, "\\'")}', event)"
                             >#${escapeHtml(tag)}</button>
                         `).join("")}
-                    </div>
-                    <div class="discovery-scores">
-                        <div>
-                            <span class="small-label">YOUR RATING</span>
-                            <strong class="discovery-you" ${yours !== null ? `style="${scoreColorStyle(yours)}"` : ""}>
-                                ${yours !== null ? yours.toFixed(1) : "—"}
-                            </strong>
-                        </div>
-                        <div>
-                            <span class="small-label">COMMUNITY</span>
-                            <strong class="discovery-community" ${community !== null ? `style="${scoreColorStyle(community)}"` : ""}>
-                                ${community !== null ? community.toFixed(1) : "—"}
-                            </strong>
-                        </div>
                     </div>
                     <div class="discovery-actions">
                         <button
@@ -552,7 +781,7 @@ function setupDiscoveryFeed() {
                     renderDiscoveryFeed();
                     const again = feed.querySelector(`[data-album-id="${keepId}"]`);
                     if (again) {
-                        again.scrollIntoView({ block: "nearest" });
+                        again.scrollIntoView({ block: "start" });
                     }
                 }
             }
@@ -762,73 +991,226 @@ function getFriendComparison(albumId) {
 
 /* ---------- profile ---------- */
 
+let profileEditMode = false;
+
 function showProfile() {
-    if (!currentUser) {
-        openAuth();
-        return;
-    }
+    ensureLocalProfileIdentity();
     hideAllPages();
     setActiveNav("navProfile");
     const page = document.getElementById("profilePage");
     if (page) {
         page.classList.remove("hidden");
     }
+    setProfileEditMode(false);
     renderProfilePage();
 }
 
-function getProfileBioKey() {
-    return currentUser ? `ratedBio_${currentUser.id}` : null;
-}
+function setProfileEditMode(editing) {
+    const wasEditing = profileEditMode;
+    profileEditMode = Boolean(editing);
+    const header = document.getElementById("profileHeader");
+    const editBtn = document.getElementById("profileEditBtn");
+    const avatarBtn = document.querySelector(".profile-avatar-btn");
+    const display = document.getElementById("profileUsernameDisplay");
+    const editRow = document.getElementById("profileUsernameEdit");
+    const nameInput = document.getElementById("profileUsernameInput");
 
-function getProfileBio() {
-    const key = getProfileBioKey();
-    if (!key) {
-        return "";
+    if (header) {
+        header.classList.toggle("is-editing", profileEditMode);
     }
-    return localStorage.getItem(key) || "";
+    if (editBtn) {
+        editBtn.setAttribute("aria-pressed", profileEditMode ? "true" : "false");
+        editBtn.setAttribute("aria-label", profileEditMode ? "Done editing" : "Edit profile");
+        editBtn.classList.toggle("active", profileEditMode);
+    }
+    if (avatarBtn) {
+        avatarBtn.hidden = !profileEditMode;
+    }
+    if (display) {
+        display.hidden = profileEditMode;
+    }
+    if (editRow) {
+        editRow.hidden = !profileEditMode;
+    }
+    if (!profileEditMode) {
+        setProfileHint("");
+    } else if (nameInput) {
+        nameInput.value = (currentUser && currentUser.username) || nameInput.value || "";
+        if (!wasEditing) {
+            requestAnimationFrame(() => {
+                nameInput.focus();
+                nameInput.select();
+            });
+        }
+    }
 }
 
-function saveProfileBio() {
-    const key = getProfileBioKey();
-    const input = document.getElementById("profileBioInput");
-    if (!key || !input) {
+function toggleProfileEditMode() {
+    ensureLocalProfileIdentity();
+    if (profileEditMode) {
+        saveProfileUsername();
         return;
     }
-    localStorage.setItem(key, input.value.slice(0, 280));
-    const display = document.getElementById("profileBioDisplay");
-    if (display) {
-        display.textContent = input.value.trim() || "Add a bio.";
-    }
-    closeProfileEdit();
+    setProfileEditMode(true);
 }
 
-function openProfileEdit() {
-    const panel = document.getElementById("profileEditPanel");
-    const input = document.getElementById("profileBioInput");
-    if (panel) {
-        panel.classList.remove("hidden");
-    }
-    if (input) {
-        input.value = getProfileBio();
-        input.focus();
+function getGuestProfileKey() {
+    return "ratedGuestProfile";
+}
+
+function getGuestProfile() {
+    try {
+        return JSON.parse(localStorage.getItem(getGuestProfileKey()) || "null");
+    } catch (error) {
+        return null;
     }
 }
 
-function closeProfileEdit() {
-    const panel = document.getElementById("profileEditPanel");
-    if (panel) {
-        panel.classList.add("hidden");
+function saveGuestProfile(profile) {
+    localStorage.setItem(getGuestProfileKey(), JSON.stringify(profile));
+}
+
+function ensureLocalProfileIdentity() {
+    if (currentUser) {
+        return currentUser;
+    }
+
+    let guest = getGuestProfile();
+    if (!guest || typeof guest !== "object") {
+        guest = {
+            id: "guest",
+            username: "Guest",
+            profile_picture: null,
+            isGuest: true
+        };
+        saveGuestProfile(guest);
+    }
+
+    currentUser = {
+        id: guest.id || "guest",
+        username: guest.username || "Guest",
+        email: guest.email || null,
+        profile_picture: guest.profile_picture || null,
+        isGuest: true
+    };
+    localStorage.setItem("ratedUser", JSON.stringify(currentUser));
+    updateProfileButton();
+    return currentUser;
+}
+
+function persistCurrentUserProfile() {
+    if (!currentUser) {
+        return;
+    }
+
+    localStorage.setItem("ratedUser", JSON.stringify(currentUser));
+
+    if (currentUser.isGuest || currentUser.id === "guest") {
+        saveGuestProfile({
+            id: currentUser.id || "guest",
+            username: currentUser.username,
+            profile_picture: currentUser.profile_picture || null,
+            isGuest: true
+        });
+        updateProfileButton();
+        return;
+    }
+
+    const users = getLocalUsers();
+    const index = users.findIndex(user => Number(user.id) === Number(currentUser.id));
+    if (index >= 0) {
+        users[index] = {
+            ...users[index],
+            username: currentUser.username,
+            profile_picture: currentUser.profile_picture || null
+        };
+        localStorage.setItem("ratedLocalUsers", JSON.stringify(users));
+    }
+
+    updateProfileButton();
+}
+
+function setProfileHint(message, isError) {
+    const hint = document.getElementById("profileUsernameHint");
+    if (!hint) {
+        return;
+    }
+    if (!message) {
+        hint.hidden = true;
+        hint.textContent = "";
+        return;
+    }
+    hint.hidden = false;
+    hint.textContent = message;
+    hint.style.color = isError ? "#ff6b6b" : "#aaa";
+}
+
+function saveProfileUsername() {
+    ensureLocalProfileIdentity();
+    const input = document.getElementById("profileUsernameInput");
+    if (!input || !currentUser) {
+        return;
+    }
+
+    const username = input.value.trim().slice(0, 32);
+    if (username.length < 2) {
+        setProfileHint("Name needs at least 2 characters.", true);
+        setProfileEditMode(true);
+        return;
+    }
+
+    if (!currentUser.isGuest && currentUser.id !== "guest") {
+        const taken = getLocalUsers().some(
+            user =>
+                Number(user.id) !== Number(currentUser.id) &&
+                String(user.username || "").toLowerCase() === username.toLowerCase()
+        );
+        if (taken) {
+            setProfileHint("That username is already taken.", true);
+            setProfileEditMode(true);
+            return;
+        }
+    }
+
+    currentUser.username = username;
+    persistCurrentUserProfile();
+    setProfileEditMode(false);
+    setProfileHint("Saved.", false);
+    renderProfilePage();
+}
+
+async function onProfileAvatarSelected(event) {
+    ensureLocalProfileIdentity();
+    const input = event && event.target;
+    const file = input && input.files && input.files[0];
+    if (!file || !currentUser) {
+        return;
+    }
+
+    try {
+        const dataUrl = await fileToBase64(file);
+        currentUser.profile_picture = dataUrl;
+        persistCurrentUserProfile();
+        setProfileHint("Photo updated.", false);
+        renderProfilePage();
+    } catch (error) {
+        setProfileHint("Could not update photo.", true);
+    } finally {
+        if (input) {
+            input.value = "";
+        }
     }
 }
 
 function renderProfilePage() {
+    ensureLocalProfileIdentity();
     if (!currentUser) {
         return;
     }
 
     const avatar = document.getElementById("profileAvatar");
-    const name = document.getElementById("profileUsername");
-    const bio = document.getElementById("profileBioDisplay");
+    const nameInput = document.getElementById("profileUsernameInput");
+    const nameDisplay = document.getElementById("profileUsernameDisplay");
     const friendsRow = document.getElementById("profileFriendsRow");
     const taste = document.getElementById("profileTasteTags");
 
@@ -836,15 +1218,16 @@ function renderProfilePage() {
         if (currentUser.profile_picture) {
             avatar.innerHTML = `<img src="${currentUser.profile_picture}" alt="">`;
         } else {
-            avatar.innerHTML = `<img src="assets/rated-icon-light.png?v=31" alt="RATED">`;
+            avatar.innerHTML = `<img src="assets/rated-icon-light.png?v=44" alt="RATED">`;
         }
     }
-    if (name) {
-        name.textContent = currentUser.username;
+    if (nameDisplay) {
+        nameDisplay.textContent = currentUser.username || "Guest";
     }
-    if (bio) {
-        bio.textContent = getProfileBio().trim() || "Add a bio.";
+    if (nameInput && document.activeElement !== nameInput) {
+        nameInput.value = currentUser.username || "";
     }
+    setProfileEditMode(profileEditMode);
 
     if (friendsRow) {
         const ids = getFollowIds().slice(0, 4);
@@ -903,7 +1286,7 @@ function renderProfilePage() {
             .join("");
 
         const artistChips = artistTags.slice(0, 8).map(artist =>
-            `<button type="button" class="taste-chip artist" onclick="toggleSaveArtist('${artist.replace(/'/g, "\\'")}', event)">#${escapeHtml(artist)}</button>`
+            `<button type="button" class="taste-chip artist ${isArtistSaved(artist) ? "is-saved" : ""}" data-save-artist="${escapeHtml(artist)}" aria-pressed="${isArtistSaved(artist) ? "true" : "false"}" onclick="toggleSaveArtist('${artistSaveOnclick(artist)}', event)">#${escapeHtml(artist)}</button>`
         ).join("");
 
         taste.innerHTML = (artistChips + genreChips) || `<span class="muted">Rate albums to build taste tags.</span>`;
@@ -950,9 +1333,6 @@ function getRatedAlbumsForProfile() {
 
 function createPosterCard(album, options = {}) {
     const yours = getAlbumRating(album.id);
-    const community = getAlbumGlobalRating(album.id);
-    const palette = discoveryColorsCache.get(album.id);
-    const swatches = (palette && palette.swatches) || ["#111", "#333", "#555", "#888", "#bbb"];
     const trackCount = album.songs.length;
     const compact = trackCount > 16 ? "is-compact" : trackCount > 12 ? "is-tight" : "";
 
@@ -971,17 +1351,12 @@ function createPosterCard(album, options = {}) {
     }).join("");
 
     const metaBits = [];
-    if (album.genre) {
-        metaBits.push(`LABEL: ${escapeHtml(album.genre).toUpperCase()}`);
-    }
     if (album.songs && album.songs.length) {
         metaBits.push(`${album.songs.length} TRACKS`);
     }
     if (album.year) {
         metaBits.push(`RELEASED ${album.year}`);
     }
-
-    extractCoverPalette(album);
 
     return `
         <article
@@ -1002,25 +1377,18 @@ function createPosterCard(album, options = {}) {
                 <div class="poster-body">
                     <ol class="poster-tracks">${tracks}</ol>
                     <div class="poster-side">
-                        <div class="poster-swatches">
-                            ${swatches.slice(0, 5).map(c => `<span style="background:${c}"></span>`).join("")}
-                        </div>
                         <p class="poster-artist">${escapeHtml(album.artist)}</p>
                         <h3 class="poster-title">${escapeHtml(album.title)}</h3>
                         <div class="poster-scores">
-                            <div>
-                                <span>AVG</span>
-                                <strong>${community !== null ? community.toFixed(1) : "—"}</strong>
-                            </div>
-                            <div>
+                            <div class="poster-score-you">
                                 <span>YOU</span>
-                                <strong ${yours !== null ? `style="${scoreColorStyle(yours)}"` : ""}>
-                                    ${yours !== null ? yours.toFixed(1) : "—"}
-                                </strong>
+                                <div class="poster-score-row">
+                                    <strong>${yours !== null ? yours.toFixed(1) : "—"}</strong>
+                                    <img class="poster-logo" src="assets/rated-mark-dark.png?v=44" alt="RATED">
+                                </div>
                             </div>
                         </div>
-                        <img class="poster-logo" src="assets/rated-wordmark-dark.png?v=31" alt="RATED">
-                        <p class="poster-meta">${metaBits.join(" · ")}</p>
+                        ${metaBits.length ? `<p class="poster-meta">${metaBits.join(" · ")}</p>` : ""}
                     </div>
                 </div>
             </div>
@@ -1039,24 +1407,6 @@ function renderProfilePosters() {
         return;
     }
     grid.innerHTML = rated.map(album => createPosterCard(album)).join("");
-    rated.slice(0, 12).forEach(album => {
-        extractCoverPalette(album).then(() => {
-            const card = grid.querySelector(`[data-poster-album="${album.id}"]`);
-            if (!card) {
-                return;
-            }
-            const palette = discoveryColorsCache.get(album.id);
-            if (!palette) {
-                return;
-            }
-            const swatchRow = card.querySelector(".poster-swatches");
-            if (swatchRow) {
-                swatchRow.innerHTML = palette.swatches.slice(0, 5)
-                    .map(c => `<span style="background:${c}"></span>`)
-                    .join("");
-            }
-        });
-    });
 }
 
 function openPosterModal(albumId) {
@@ -1072,13 +1422,6 @@ function openPosterModal(albumId) {
         card.onclick = null;
     }
     modal.classList.remove("hidden");
-    extractCoverPalette(album).then(() => {
-        body.innerHTML = createPosterCard(album, { large: true });
-        const again = body.querySelector(".poster-card");
-        if (again) {
-            again.onclick = null;
-        }
-    });
 }
 
 function closePosterModal() {
@@ -1114,12 +1457,22 @@ function renderProfileCollections() {
     if (profileCollectionTab === "artists") {
         const list = readSaveList("Artists");
         box.innerHTML = list.length
-            ? `<div class="saved-chip-list">${list.map(name => `
-                <button type="button" class="saved-chip" onclick="openArtist('${name.replace(/'/g, "\\'")}')">
-                    #${escapeHtml(name)}
-                </button>
-            `).join("")}</div>`
-            : `<div class="empty-state">Save artists from genre chips or discovery.</div>`;
+            ? `<div class="saved-artist-list">${list.map(name => {
+                const src = savedArtistPhotoSrc(name);
+                return `
+                <button
+                    type="button"
+                    class="saved-artist-row"
+                    onclick="openArtist('${encodeURIComponent(name)}')"
+                >
+                    ${src
+                        ? `<img class="saved-artist-photo" src="${src}" alt="" loading="lazy" decoding="async" width="48" height="48">`
+                        : `<span class="saved-artist-photo saved-artist-photo-fallback" aria-hidden="true"></span>`
+                    }
+                    <span class="saved-artist-name">${escapeHtml(name)}</span>
+                </button>`;
+            }).join("")}</div>`
+            : `<div class="empty-state">Save artists from an album or artist page.</div>`;
         return;
     }
 
@@ -1302,7 +1655,13 @@ function updateTrackProgressChrome() {
     const bar = document.getElementById("albumProgressBar");
 
     if (scoreEl) {
-        animateScoreNumber(scoreEl, scoreText);
+        // Instant text while dragging so the album average tracks every tick.
+        if (isDraggingSongLine || isDraggingDial) {
+            scoreEl.classList.remove("score-pop");
+            scoreEl.textContent = scoreText;
+        } else {
+            animateScoreNumber(scoreEl, scoreText);
+        }
         applyScoreColor(scoreEl, live);
     }
     if (countEl) {
@@ -1336,6 +1695,7 @@ function enhanceAlbumHeroActions() {
     }
     const wrap = document.createElement("div");
     wrap.className = "album-extra-actions";
+    const artistNames = splitArtistNames(currentAlbum.artist);
     wrap.innerHTML = `
         <button
             type="button"
@@ -1343,9 +1703,20 @@ function enhanceAlbumHeroActions() {
             data-collect-album="${currentAlbum.id}"
             onclick="toggleCollectAlbum(${currentAlbum.id}, event)"
         >${isAlbumCollected(currentAlbum.id) ? "Saved" : "Save"}</button>
+        <div class="album-tag-row album-artist-save-row">
+            ${artistNames.map(name => `
+                <button
+                    type="button"
+                    class="genre-chip artist-save-chip ${isArtistSaved(name) ? "is-saved" : ""}"
+                    data-save-artist="${escapeHtml(name)}"
+                    aria-pressed="${isArtistSaved(name) ? "true" : "false"}"
+                    onclick="toggleSaveArtist('${artistSaveOnclick(name)}', event)"
+                >${escapeHtml(name)} · ${isArtistSaved(name) ? "Saved" : "Save"}</button>
+            `).join("")}
+        </div>
         <div class="album-tag-row">
             ${getAlbumGenreTags(currentAlbum).map(tag => `
-                <button type="button" class="genre-chip" onclick="toggleSaveGenre('${tag.replace(/'/g, "\\'")}', event)">#${escapeHtml(tag)}</button>
+                <button type="button" class="genre-chip ${isGenreSaved(tag) ? "is-saved" : ""}" onclick="toggleSaveGenre('${tag.replace(/'/g, "\\'")}', event)">#${escapeHtml(tag)}</button>
             `).join("")}
         </div>
     `;
@@ -1425,7 +1796,6 @@ function initRatedUI() {
     document.addEventListener("keydown", event => {
         if (event.key === "Escape") {
             closePosterModal();
-            closeProfileEdit();
         }
     });
 }

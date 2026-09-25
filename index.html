@@ -20,8 +20,8 @@
     <meta name="description" content="Discover, rate, and collect hip-hop albums.">
 
     <title>RATED — Hip-Hop Albums</title>
-    <link rel="icon" type="image/png" href="assets/rated-icon-light.png?v=31">
-    <link rel="apple-touch-icon" href="assets/rated-icon-light.png?v=31">
+    <link rel="icon" type="image/png" href="assets/rated-icon-light.png?v=44">
+    <link rel="apple-touch-icon" href="assets/rated-icon-light.png?v=44">
     <link rel="manifest" href="manifest.webmanifest">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,15 +39,15 @@
 
     <link
         rel="stylesheet"
-        href="css/style.css?v=31"
+        href="css/style.css?v=45"
     >
 
-    <script src="js/albums.js?v=31" defer></script>
-    <script src="js/artistPhotos.js?v=31" defer></script>
-    <script src="js/globalRatings.js?v=31" defer></script>
-    <script src="js/genres.js?v=31" defer></script>
-    <script src="js/script.js?v=31" defer></script>
-    <script src="js/rated-ui.js?v=31" defer></script>
+    <script src="js/albums.js?v=44" defer></script>
+    <script src="js/artistPhotos.js?v=44" defer></script>
+    <script src="js/globalRatings.js?v=44" defer></script>
+    <script src="js/genres.js?v=44" defer></script>
+    <script src="js/script.js?v=45" defer></script>
+    <script src="js/rated-ui.js?v=45" defer></script>
 
 </head>
 
@@ -67,7 +67,7 @@
         aria-label="RATED"
     >
         <img
-            src="assets/rated-wordmark-light.png?v=31"
+            src="assets/rated-wordmark-light.png?v=44"
             alt="RATED"
         >
     </div>
@@ -207,6 +207,15 @@
             Best Albums
         </button>
 
+        <button
+            type="button"
+            class="home-tab"
+            data-tab="new"
+            onclick="setHomeTab('new')"
+        >
+            New
+        </button>
+
     </div>
 
     <div
@@ -233,6 +242,8 @@
         </div>
         <div id="bestAlbumsGrid" class="album-list"></div>
     </div>
+
+    <div id="newReleasesPanel" class="new-releases-panel hidden"></div>
 
     <!-- Legacy grid kept for desktop fallback / search wiring -->
     <div id="albumGrid" class="album-list legacy-album-grid hidden"></div>
@@ -739,13 +750,15 @@
     class="page hidden"
 >
 
-    <div class="profile-header">
+    <div class="profile-header" id="profileHeader">
 
         <button
             type="button"
             class="icon-button profile-edit-btn"
-            onclick="openProfileEdit()"
+            id="profileEditBtn"
+            onclick="toggleProfileEditMode()"
             aria-label="Edit profile"
+            aria-pressed="false"
         >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 20h4.5L19 9.5 14.5 5 4 15.5V20z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -753,9 +766,42 @@
             </svg>
         </button>
 
-        <div id="profileAvatar" class="profile-avatar"></div>
-        <h1 id="profileUsername">Profile</h1>
-        <p id="profileBioDisplay" class="profile-bio">Add a bio.</p>
+        <div class="profile-avatar-wrap">
+            <div id="profileAvatar" class="profile-avatar"></div>
+            <label class="profile-avatar-btn" for="profileAvatarInput" hidden>
+                Change photo
+                <input
+                    id="profileAvatarInput"
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onchange="onProfileAvatarSelected(event)"
+                >
+            </label>
+        </div>
+
+        <h2 id="profileUsernameDisplay" class="profile-username-display"></h2>
+
+        <div class="profile-username-row" id="profileUsernameEdit" hidden>
+            <label class="sr-only" for="profileUsernameInput">Username</label>
+            <input
+                id="profileUsernameInput"
+                class="profile-username-input"
+                type="text"
+                maxlength="32"
+                autocomplete="username"
+                placeholder="Your name"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();saveProfileUsername();}"
+            >
+            <button
+                type="button"
+                class="done-button profile-username-save"
+                onclick="saveProfileUsername()"
+            >
+                Done
+            </button>
+        </div>
+        <p id="profileUsernameHint" class="profile-username-hint muted" hidden></p>
 
         <div id="profileFriendsRow" class="profile-friends-row"></div>
         <div id="profileTasteTags" class="profile-taste-tags"></div>
@@ -764,23 +810,6 @@
             <button type="button" class="text-button" onclick="showArtists()">Artists</button>
             <button type="button" class="text-button" onclick="showPerfectAlbums()">10/10</button>
             <button type="button" class="text-button" onclick="openAuth()">Account</button>
-        </div>
-    </div>
-
-    <div
-        id="profileEditPanel"
-        class="profile-edit-panel hidden"
-    >
-        <label for="profileBioInput">Bio</label>
-        <textarea
-            id="profileBioInput"
-            maxlength="280"
-            rows="3"
-            placeholder="Say something about your taste..."
-        ></textarea>
-        <div class="profile-edit-actions">
-            <button type="button" class="done-button" onclick="saveProfileBio()">Save</button>
-            <button type="button" class="text-button" onclick="closeProfileEdit()">Cancel</button>
             <button type="button" class="text-button danger" onclick="logout()">Log out</button>
         </div>
     </div>
@@ -848,7 +877,7 @@
 
         <div class="auth-logo">
             <img
-                src="assets/rated-wordmark-light.png?v=31"
+                src="assets/rated-wordmark-light.png?v=44"
                 alt="RATED"
             >
         </div>
