@@ -1251,45 +1251,62 @@ function renderProfilePage() {
     }
 
     if (taste) {
-        const artistTags = [];
-        const seenArtists = new Set();
+        const artistCounts = {};
+        const genreCounts = {};
+        const skipGenres = new Set(["Hip-Hop", "Rap"]);
         Object.keys(guestRatings || {}).forEach(albumId => {
             const album = albumById.get(Number(albumId));
             if (!album || getAlbumRating(Number(albumId)) === null) {
                 return;
             }
             splitArtistNames(album.artist).forEach(artist => {
-                if (!seenArtists.has(artist)) {
-                    seenArtists.add(artist);
-                    artistTags.push(artist);
-                }
+                artistCounts[artist] = (artistCounts[artist] || 0) + 1;
             });
-        });
-
-        const genreStats = {};
-        Object.keys(guestRatings || {}).forEach(albumId => {
-            const album = albumById.get(Number(albumId));
-            if (!album || getAlbumRating(Number(albumId)) === null) {
-                return;
-            }
             getAlbumGenreTags(album).forEach(tag => {
-                genreStats[tag] = (genreStats[tag] || 0) + 1;
+                if (skipGenres.has(tag)) {
+                    return;
+                }
+                genreCounts[tag] = (genreCounts[tag] || 0) + 1;
             });
         });
 
-        const genreChips = Object.entries(genreStats)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10)
-            .map(([tag, count]) =>
-                `<button type="button" class="taste-chip genre" onclick="toggleSaveGenre('${tag.replace(/'/g, "\\'")}', event)">#${escapeHtml(tag)} <span>${count}</span></button>`
-            )
-            .join("");
+        const ranked = [
+            ...Object.entries(artistCounts).map(([name, count]) => ({ kind: "artist", name, count })),
+            ...Object.entries(genreCounts).map(([name, count]) => ({ kind: "genre", name, count }))
+        ].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-        const artistChips = artistTags.slice(0, 8).map(artist =>
-            `<button type="button" class="taste-chip artist ${isArtistSaved(artist) ? "is-saved" : ""}" data-save-artist="${escapeHtml(artist)}" aria-pressed="${isArtistSaved(artist) ? "true" : "false"}" onclick="toggleSaveArtist('${artistSaveOnclick(artist)}', event)">#${escapeHtml(artist)}</button>`
-        ).join("");
+        const visible = ranked.slice(0, 5);
+        const rest = ranked.slice(5);
+        const savedArtists = new Set(readSaveList("Artists"));
+        const savedGenres = new Set(readSaveList("Genres"));
+        let artistsChanged = false;
+        let genresChanged = false;
+        rest.forEach(item => {
+            if (item.kind === "artist") {
+                if (!savedArtists.has(item.name)) {
+                    savedArtists.add(item.name);
+                    artistsChanged = true;
+                }
+            } else if (!savedGenres.has(item.name)) {
+                savedGenres.add(item.name);
+                genresChanged = true;
+            }
+        });
+        if (artistsChanged) {
+            writeSaveList("Artists", [...savedArtists]);
+        }
+        if (genresChanged) {
+            writeSaveList("Genres", [...savedGenres]);
+        }
 
-        taste.innerHTML = (artistChips + genreChips) || `<span class="muted">Rate albums to build taste tags.</span>`;
+        const chips = visible.map(item => {
+            if (item.kind === "artist") {
+                return `<button type="button" class="taste-chip artist ${isArtistSaved(item.name) ? "is-saved" : ""}" data-save-artist="${escapeHtml(item.name)}" aria-pressed="${isArtistSaved(item.name) ? "true" : "false"}" onclick="toggleSaveArtist('${artistSaveOnclick(item.name)}', event)">#${escapeHtml(item.name)}</button>`;
+            }
+            return `<button type="button" class="taste-chip genre" onclick="toggleSaveGenre('${item.name.replace(/'/g, "\\'")}', event)">#${escapeHtml(item.name)}</button>`;
+        }).join("");
+
+        taste.innerHTML = chips || `<span class="muted">Rate albums to build taste tags.</span>`;
     }
 
     renderProfilePosters();
