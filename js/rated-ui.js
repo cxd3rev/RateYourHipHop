@@ -1382,6 +1382,9 @@ function createPosterCard(album, options = {}) {
             onclick="openPosterModal(${album.id})"
         >
             <div class="poster-inner">
+                <div class="poster-wash" aria-hidden="true">
+                    <img src="${coverSrc(album.cover, 80)}" alt="">
+                </div>
                 <img
                     class="poster-cover"
                     src="${coverSrc(album.cover, options.large ? 500 : 250)}"
@@ -1401,7 +1404,7 @@ function createPosterCard(album, options = {}) {
                                 <span>YOU</span>
                                 <div class="poster-score-row">
                                     <strong>${yours !== null ? yours.toFixed(1) : "—"}</strong>
-                                    <img class="poster-logo" src="assets/rated-mark-dark.png?v=44" alt="RATED">
+                                    <img class="poster-logo" src="assets/rated-mark-light.png?v=48" alt="RATED">
                                 </div>
                             </div>
                         </div>
