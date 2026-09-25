@@ -22,7 +22,62 @@ SKIP_TITLE = re.compile(
     re.I,
 )
 NON_GENRES = {85, 98, 106, 113, 129, 132, 169, 173, 466, 2}
+HIPHOP_GENRE_IDS = {116}  # Deezer Rap/Hip Hop
 MAX_ALBUMS_PER_ARTIST = 12
+
+
+def genre_name_is_hiphop(name: str) -> bool:
+    text = (name or "").lower().replace("-", " ")
+    return "rap" in text or "hip hop" in text
+
+
+def releases_look_hiphop(releases) -> bool:
+    """True if Deezer album rows are mostly tagged Rap/Hip-Hop."""
+    hits = 0
+    checked = 0
+    for release in (releases or [])[:20]:
+        gid = release.get("genre_id")
+        if gid in NON_GENRES:
+            continue
+        if gid in (None, -1, 0):
+            continue
+        checked += 1
+        if gid in HIPHOP_GENRE_IDS:
+            hits += 1
+    if hits >= 2:
+        return True
+    if hits >= 1 and checked <= 3:
+        return True
+    if checked > 0 and hits / checked >= 0.5:
+        return True
+    return False
+
+
+def is_hiphop_artist(artist_id, releases=None) -> bool:
+    """Require Rap/Hip-Hop on the artist's Deezer catalog before accepting."""
+    rows = releases
+    if rows is None:
+        try:
+            rows = artist_albums(artist_id)
+        except Exception:
+            return False
+    if releases_look_hiphop(rows):
+        return True
+    if not rows:
+        return False
+    album_id = rows[0].get("id")
+    if not album_id:
+        return False
+    try:
+        detail = get_json(f"https://api.deezer.com/album/{album_id}")
+    except Exception:
+        return False
+    if detail.get("genre_id") in HIPHOP_GENRE_IDS:
+        return True
+    for genre in ((detail.get("genres") or {}).get("data") or []):
+        if genre_name_is_hiphop(genre.get("name") or ""):
+            return True
+    return False
 
 # Hip-hop / rap names not already in the catalog (examples: Uzi, slayr, Osamason).
 NEW_ARTISTS = [
