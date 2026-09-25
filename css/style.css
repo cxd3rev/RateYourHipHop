@@ -3926,22 +3926,6 @@ body {
     margin-top: auto;
 }
 
-.poster-close,
-.poster-modal > .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 6;
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.45);
-    color: #fff;
-    font-size: 24px;
-    line-height: 1;
-}
-
 .poster-modal > .modal-close {
     display: none;
 }

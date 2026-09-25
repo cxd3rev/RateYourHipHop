@@ -1423,7 +1423,6 @@ function createPosterCard(album, options = {}) {
 
     return `
         <article class="poster-card is-large" data-poster-album="${album.id}">
-            <button type="button" class="poster-close" onclick="event.stopPropagation(); closePosterModal()" aria-label="Close">×</button>
             <div class="poster-flip" onclick="flipPosterCard(this)">
                 ${front}
                 <div class="poster-face poster-back">
