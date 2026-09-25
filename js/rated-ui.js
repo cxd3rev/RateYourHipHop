@@ -1509,6 +1509,7 @@ function toggleSearch(force) {
     if (btn) {
         btn.classList.toggle("active", searchOpen);
     }
+    document.body.classList.toggle("search-is-open", searchOpen);
     if (searchOpen) {
         const input = document.getElementById("searchInput");
         if (input) {
@@ -1517,11 +1518,51 @@ function toggleSearch(force) {
     }
 }
 
+function searchRank(album, q) {
+    const title = album.title.toLowerCase();
+    const artist = album.artist.toLowerCase();
+    if (title.startsWith(q)) return 0;
+    if (artist.startsWith(q)) return 1;
+    if (title.includes(q)) return 2;
+    if (artist.includes(q)) return 3;
+    const song = (album.songs || []).find(name => String(name).toLowerCase().includes(q));
+    if (song) return 4;
+    if (typeof albumMatchesGenreQuery === "function" && albumMatchesGenreQuery(album, q)) return 5;
+    return 9;
+}
+
+function bindSearchResults() {
+    const box = document.getElementById("searchResults");
+    if (!box || box.dataset.bound) {
+        return;
+    }
+    box.dataset.bound = "1";
+    box.addEventListener("click", event => {
+        const albumBtn = event.target.closest("[data-search-album]");
+        if (albumBtn) {
+            toggleSearch(false);
+            openAlbum(Number(albumBtn.dataset.searchAlbum));
+            return;
+        }
+        const artistBtn = event.target.closest("[data-search-artist]");
+        if (artistBtn) {
+            toggleSearch(false);
+            openArtist(decodeURIComponent(artistBtn.dataset.searchArtist));
+            return;
+        }
+        const genreBtn = event.target.closest("[data-search-genre]");
+        if (genreBtn) {
+            searchGenreTag(decodeURIComponent(genreBtn.dataset.searchGenre));
+        }
+    });
+}
+
 function renderExpandedSearch(query) {
     const box = document.getElementById("searchResults");
     if (!box) {
         return false;
     }
+    bindSearchResults();
 
     const q = String(query || "").toLowerCase().trim();
     if (!q) {
@@ -1530,21 +1571,28 @@ function renderExpandedSearch(query) {
         return false;
     }
 
-    const albumHits = albums.filter(album =>
-        album.title.toLowerCase().includes(q) ||
-        album.artist.toLowerCase().includes(q) ||
-        albumMatchesGenreQuery(album, q)
-    ).slice(0, 20);
+    const albumHits = albums
+        .map(album => ({ album, rank: searchRank(album, q) }))
+        .filter(entry => entry.rank < 9)
+        .sort((a, b) => a.rank - b.rank || a.album.title.localeCompare(b.album.title))
+        .slice(0, 24)
+        .map(entry => entry);
 
     const artistHits = [];
     const seen = new Set();
     albums.forEach(album => {
         splitArtistNames(album.artist).forEach(name => {
-            if (name.toLowerCase().includes(q) && !seen.has(name)) {
-                seen.add(name);
+            const key = name.toLowerCase();
+            if (key.includes(q) && !seen.has(key)) {
+                seen.add(key);
                 artistHits.push(name);
             }
         });
+    });
+    artistHits.sort((a, b) => {
+        const as = a.toLowerCase().startsWith(q) ? 0 : 1;
+        const bs = b.toLowerCase().startsWith(q) ? 0 : 1;
+        return as - bs || a.localeCompare(b);
     });
 
     const userHits = getPublicUsers().filter(user =>
@@ -1552,7 +1600,8 @@ function renderExpandedSearch(query) {
     ).slice(0, 8);
 
     const genreHits = new Set();
-    albums.slice(0, 400).forEach(album => {
+    albums.forEach(album => {
+        if (typeof getAlbumGenreTags !== "function") return;
         getAlbumGenreTags(album).forEach(tag => {
             if (tag.toLowerCase().includes(q)) {
                 genreHits.add(tag);
@@ -1560,47 +1609,60 @@ function renderExpandedSearch(query) {
         });
     });
 
-    box.classList.remove("hidden");
-    box.innerHTML = `
-        <section>
-            <h3>Albums</h3>
-            <div class="album-list search-album-list">
-                ${albumHits.length ? albumHits.map((a, i) => createAlbumCard(a, false, i + 1)).join("") : "<p class='muted'>No albums</p>"}
-            </div>
-        </section>
-        <section>
-            <h3>Artists</h3>
-            <div class="saved-chip-list">
-                ${artistHits.slice(0, 12).map(name => `
-                    <button type="button" class="saved-chip" onclick="openArtist('${name.replace(/'/g, "\\'")}')">#${escapeHtml(name)}</button>
-                `).join("") || "<p class='muted'>No artists</p>"}
-            </div>
-        </section>
-        <section>
-            <h3>Users</h3>
-            <div class="friends-container">
-                ${userHits.length ? userHits.map(user => createFriendRow(user)).join("") : "<p class='muted'>No users</p>"}
-            </div>
-        </section>
-        <section>
-            <h3>Genres</h3>
-            <div class="saved-chip-list">
-                ${[...genreHits].slice(0, 12).map(tag => `
-                    <button type="button" class="saved-chip" onclick="searchGenreTag('${tag.replace(/'/g, "\\'")}')">#${escapeHtml(tag)}</button>
-                `).join("") || "<p class='muted'>No genres</p>"}
-            </div>
-        </section>
-    `;
+    const albumHtml = albumHits.map(({ album, rank }) => {
+        const song = rank === 4
+            ? (album.songs || []).find(name => String(name).toLowerCase().includes(q))
+            : "";
+        return `
+            <button type="button" class="search-hit" data-search-album="${album.id}">
+                <img src="${coverSrc(album.cover)}" alt="" width="56" height="56" loading="lazy" decoding="async">
+                <span class="search-hit-copy">
+                    <strong>${escapeHtml(album.title)}</strong>
+                    <span>${escapeHtml(album.artist)}${album.year ? " · " + album.year : ""}${song ? " · " + escapeHtml(song) : ""}</span>
+                </span>
+            </button>
+        `;
+    }).join("");
 
-    // Also drive discovery filter when on albums tab
-    if (homeTab === "albums") {
-        renderDiscoveryFeed(buildDiscoveryList(albumHits.length ? albumHits : albums.filter(a =>
-            a.title.toLowerCase().includes(q) ||
-            a.artist.toLowerCase().includes(q) ||
-            albumMatchesGenreQuery(a, q)
-        )));
+    const sections = [];
+    if (albumHits.length) {
+        sections.push(`<section><h3>Albums</h3><div>${albumHtml}</div></section>`);
+    }
+    if (artistHits.length) {
+        sections.push(`
+            <section>
+                <h3>Artists</h3>
+                <div class="saved-chip-list">
+                    ${artistHits.slice(0, 12).map(name => `
+                        <button type="button" class="saved-chip" data-search-artist="${encodeURIComponent(name)}">${escapeHtml(name)}</button>
+                    `).join("")}
+                </div>
+            </section>
+        `);
+    }
+    if (userHits.length) {
+        sections.push(`
+            <section>
+                <h3>Users</h3>
+                <div class="friends-container">${userHits.map(user => createFriendRow(user)).join("")}</div>
+            </section>
+        `);
+    }
+    if (genreHits.size) {
+        sections.push(`
+            <section>
+                <h3>Genres</h3>
+                <div class="saved-chip-list">
+                    ${[...genreHits].slice(0, 12).map(tag => `
+                        <button type="button" class="saved-chip" data-search-genre="${encodeURIComponent(tag)}">${escapeHtml(tag)}</button>
+                    `).join("")}
+                </div>
+            </section>
+        `);
     }
 
+    box.classList.remove("hidden");
+    box.innerHTML = sections.join("") || `<p class="muted">No matches for “${escapeHtml(q)}”.</p>`;
     return true;
 }
 

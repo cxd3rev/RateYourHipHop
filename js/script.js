@@ -5637,7 +5637,7 @@ function searchAlbums() {
     searchTimer =
         setTimeout(
             applySearch,
-            80
+            160
         );
 
 }
@@ -5663,10 +5663,6 @@ function applySearch() {
         const handled = renderExpandedSearch(query);
         if (handled || document.getElementById("searchPanel") &&
             !document.getElementById("searchPanel").classList.contains("hidden")) {
-            if (!query && typeof setHomeTab === "function") {
-                showHome();
-                renderDiscoveryFeed(buildDiscoveryList());
-            }
             return;
         }
     }
