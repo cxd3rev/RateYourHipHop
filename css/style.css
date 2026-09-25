@@ -2676,7 +2676,7 @@ h1 {
 
 }
 /* =====================================================
-   RATED v28 ù mobile shell, discovery, posters
+   RATED v28 ? mobile shell, discovery, posters
 ===================================================== */
 
 :root {
@@ -2687,7 +2687,7 @@ h1 {
     --muted: #8a8a8a;
     --accent: #e8ff47;
     --poster-paper: #f3efe6;
-    /* Real mobile chrome heights ù keep in sync with .navbar / .home-tabs / .app-tabbar */
+    /* Real mobile chrome heights ? keep in sync with .navbar / .home-tabs / .app-tabbar */
     --nav-height: calc(56px + env(safe-area-inset-top, 0px));
     --home-tabs-h: 52px;
     --tabbar-h: 64px;
@@ -2881,13 +2881,13 @@ body {
 .home-tabs {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
+    gap: 8px;
     position: sticky;
     top: var(--nav-height);
     z-index: 40;
     height: var(--home-tabs-h);
     box-sizing: border-box;
-    padding: 6px 12px;
+    padding: 8px 16px;
     align-items: center;
     background: rgba(8,8,8,0.92);
     backdrop-filter: blur(14px);
@@ -2900,10 +2900,11 @@ body {
     color: #777;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
-    padding: 12px 4px;
+    padding: 8px 2px;
     border-radius: 10px;
+    white-space: nowrap;
 }
 
 .home-tab.active {
@@ -2918,19 +2919,19 @@ body {
 }
 
 .new-section {
-    margin-bottom: 22px;
+    margin-bottom: 28px;
 }
 
 .new-section h2 {
     font-size: 18px;
-    margin: 8px 0 10px;
+    margin: 4px 0 12px;
 }
 
 .new-row {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     overflow-x: auto;
-    padding-bottom: 6px;
+    padding-bottom: 8px;
 }
 
 .new-card {
@@ -2954,7 +2955,7 @@ body {
 .new-card span,
 .new-card em {
     display: block;
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
 .new-card strong {
@@ -3005,7 +3006,7 @@ body {
 }
 
 .discovery-card {
-    /* Exact one scrollport page ù not 100vh / content-sized (that causes half-snaps). */
+    /* Exact one scrollport page ? not 100vh / content-sized (that causes half-snaps). */
     height: var(--discovery-page);
     min-height: var(--discovery-page);
     max-height: var(--discovery-page);
@@ -3013,7 +3014,7 @@ body {
     scroll-margin: 0;
     display: flex;
     align-items: stretch;
-    padding: 4px 8px 6px;
+    padding: 10px 14px 12px;
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -3026,7 +3027,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    gap: 6px;
+    gap: 16px;
     border-radius: 18px;
     overflow: hidden;
     position: relative;
@@ -3038,8 +3039,10 @@ body {
  * object-fit: contain keeps full artwork visible (no crop).
  */
 .discovery-cover-slot {
-    flex: 1 1 0;
+    /* Hold the 360 cover. Shrink only when the phone is too short. Extra room goes to the text. */
+    flex: 0 1 360px;
     min-height: 0;
+    max-height: 360px;
     width: 100%;
     display: flex;
     align-items: center;
@@ -3060,18 +3063,22 @@ body {
 }
 
 .discovery-meta {
-    padding: 0 2px 0;
+    padding: 0 2px;
     min-width: 0;
-    flex: 0 0 auto;
-    flex-shrink: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    gap: 12px;
 }
 
 .discovery-title-row {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 4px;
+    gap: 16px;
+    margin-bottom: 0;
 }
 
 .discovery-title-text {
@@ -3083,8 +3090,8 @@ body {
     font-family: var(--font-display);
     font-size: clamp(26px, 7.5vw, 42px);
     letter-spacing: 0.02em;
-    line-height: 0.92;
-    margin-bottom: 2px;
+    line-height: 0.95;
+    margin-bottom: 8px;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -3094,7 +3101,7 @@ body {
 
 .discovery-artist {
     color: #cfcfcf;
-    font-size: 13px;
+    font-size: 14px;
     margin-bottom: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3106,10 +3113,10 @@ body {
     flex-direction: column;
     align-items: flex-end;
     justify-content: flex-start;
-    gap: 4px;
+    gap: 10px;
     flex: 0 0 auto;
     flex-shrink: 0;
-    padding-top: 2px;
+    padding-top: 4px;
 }
 
 .discovery-score {
@@ -3138,8 +3145,8 @@ body {
 .discovery-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 4px;
+    gap: 8px;
+    margin-bottom: 0;
 }
 
 .genre-chip,
@@ -3163,7 +3170,7 @@ body {
 .discovery-actions {
     display: grid;
     grid-template-columns: 1.4fr 0.8fr;
-    gap: 8px;
+    gap: 12px;
     flex-shrink: 0;
 }
 
@@ -3191,21 +3198,26 @@ body {
 }
 
 .discovery-hint {
-    margin-top: 2px;
+    margin-top: 0;
     color: #666;
     font-size: 10px;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
-/* Short phones: tighten meta only ù keep the large cover target */
+/* Short phones: tighten meta only ? keep the large cover target */
 @media (max-height: 780px) {
     .discovery-card {
-        padding: 3px 8px 4px;
+        padding: 6px 12px 8px;
     }
 
     .discovery-stage {
-        gap: 4px;
+        gap: 12px;
+    }
+
+    .discovery-meta {
+        gap: 8px;
+        justify-content: flex-start;
     }
 
     .discovery-title {
@@ -3213,8 +3225,8 @@ body {
     }
 
     .discovery-title-row {
-        gap: 8px;
-        margin-bottom: 3px;
+        gap: 12px;
+        margin-bottom: 0;
     }
 
     .discovery-score strong {
@@ -3246,17 +3258,22 @@ body {
 
     .discovery-title {
         font-size: clamp(22px, 6.5vw, 32px);
-        margin-bottom: 1px;
+        margin-bottom: 4px;
+    }
+
+    .discovery-meta {
+        gap: 8px;
+        justify-content: flex-start;
     }
 
     .discovery-title-row {
-        gap: 6px;
-        margin-bottom: 2px;
+        gap: 10px;
+        margin-bottom: 0;
     }
 
     .discovery-title-scores {
-        gap: 3px;
-        padding-top: 1px;
+        gap: 6px;
+        padding-top: 2px;
     }
 
     .discovery-score strong {
@@ -3659,7 +3676,7 @@ body {
     gap: 8px;
 }
 
-/* Poster cards ù IGOR-inspired */
+/* Poster cards ? IGOR-inspired */
 .poster-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
