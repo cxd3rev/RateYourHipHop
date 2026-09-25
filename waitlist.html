@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover"
+    >
+    <meta name="theme-color" content="#080808">
+    <meta name="color-scheme" content="dark">
+    <title>RATED — Get on the list</title>
+    <meta
+        name="description"
+        content="RATED is coming. Save your name. We'll tap you in when the app drops."
+    >
+    <meta property="og:title" content="RATED — Get on the list">
+    <meta
+        property="og:description"
+        content="The hip-hop rating app. Join the waitlist. We'll hit your inbox at launch."
+    >
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="RATED — Get on the list">
+    <meta
+        name="twitter:description"
+        content="The hip-hop rating app. Join the waitlist. We'll hit your inbox at launch."
+    >
+    <link rel="icon" type="image/png" href="assets/rated-icon-light.png?v=30">
+    <link rel="apple-touch-icon" href="assets/rated-icon-light.png?v=30">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+    <link rel="stylesheet" href="css/waitlist.css">
+</head>
+
+<body>
+    <div class="glow" aria-hidden="true"></div>
+
+    <main class="shell">
+        <p class="brand">
+            <img src="assets/rated-wordmark-light.png?v=29" alt="RATED">
+        </p>
+
+        <section id="signupCard" class="card">
+            <p class="kicker">WAITLIST</p>
+            <h1>Drop your name.<br>We'll drop the app.</h1>
+            <p class="lead">
+                RATED is the hip-hop rating app — albums, tracks, scores that actually mean something.
+                Save your seat. We'll email you the second it goes live.
+            </p>
+            <p id="socialProof" class="proof" hidden></p>
+
+            <form id="waitlistForm" novalidate>
+                <label>
+                    Username
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        autocomplete="username"
+                        maxlength="30"
+                        required
+                        placeholder="yourname"
+                    >
+                </label>
+                <label>
+                    Email
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        required
+                        placeholder="you@email.com"
+                    >
+                </label>
+                <label>
+                    Password
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                        placeholder="8+ characters"
+                    >
+                </label>
+                <p id="formError" class="error" hidden></p>
+                <button id="submitButton" type="submit">
+                    Get on the list
+                </button>
+            </form>
+
+            <p class="fine">
+                Same login when we launch. We never email your password.
+            </p>
+        </section>
+
+        <section id="thanksCard" class="card thanks" hidden>
+            <p class="kicker">LOCKED IN</p>
+            <h1 id="thanksTitle">You're on the list.</h1>
+            <p id="thanksBody" class="lead"></p>
+            <p class="stamp">See you at the drop.</p>
+        </section>
+    </main>
+
+    <script src="js/waitlist.js"></script>
+</body>
+
+</html>

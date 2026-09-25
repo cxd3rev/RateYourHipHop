@@ -1,0 +1,10 @@
+.cursor
+.venv
+venv
+__pycache__
+*.pyc
+*.db
+data
+tools
+server
+globalRatings.json
