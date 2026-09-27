@@ -7,7 +7,7 @@ let homeTab = "albums";
 let discoveryIndex = 0;
 let discoveryList = [];
 let discoveryWindowStart = 0;
-const DISCOVERY_WINDOW = 7;
+const DISCOVERY_WINDOW = 16;
 let discoveryColorsCache = new Map();
 let profileSort = localStorage.getItem("profileSort") || "newest";
 let profileCollectionTab = "albums";
@@ -652,7 +652,7 @@ function renderDiscoveryFeed(list) {
         return;
     }
 
-    const start = Math.max(0, discoveryIndex - 2);
+    const start = Math.max(0, discoveryIndex - 4);
     const end = Math.min(discoveryList.length, start + DISCOVERY_WINDOW);
     discoveryWindowStart = start;
 
@@ -669,7 +669,6 @@ function renderDiscoveryFeed(list) {
         if (current) {
             current.scrollIntoView({ block: "start", behavior: "instant" in window ? "instant" : "auto" });
         }
-        slice.forEach(album => extractCoverPalette(album));
     });
 }
 
@@ -777,65 +776,100 @@ function setupDiscoveryFeed() {
     }
     feed.dataset.bound = "1";
 
+    let touching = false;
     let scrollTick = null;
+
+    const pageStep = () => feed.clientHeight || 1;
+
+    const indexFromScroll = () => {
+        const step = pageStep();
+        const guess = discoveryWindowStart + Math.round(feed.scrollTop / step);
+        return Math.max(0, Math.min(discoveryList.length - 1, guess));
+    };
+
+    const appendAhead = () => {
+        const cards = feed.querySelectorAll(".discovery-card");
+        if (!cards.length || !discoveryList.length) {
+            return;
+        }
+        const last = Number(cards[cards.length - 1].dataset.discoveryIndex);
+        const index = indexFromScroll();
+        if (index < last - 5 || last >= discoveryList.length - 1) {
+            return;
+        }
+        const to = Math.min(discoveryList.length, last + 1 + 8);
+        let html = "";
+        for (let i = last + 1; i < to; i += 1) {
+            html += createDiscoveryCard(discoveryList[i], i);
+        }
+        if (html) {
+            feed.insertAdjacentHTML("beforeend", html);
+        }
+    };
+
+    const prependBehind = () => {
+        const first = feed.querySelector(".discovery-card");
+        if (!first || discoveryWindowStart <= 0) {
+            return;
+        }
+        const index = indexFromScroll();
+        if (index > discoveryWindowStart + 3) {
+            return;
+        }
+        const from = Math.max(0, discoveryWindowStart - 8);
+        if (from === discoveryWindowStart) {
+            return;
+        }
+        let html = "";
+        for (let i = from; i < discoveryWindowStart; i += 1) {
+            html += createDiscoveryCard(discoveryList[i], i);
+        }
+        const added = discoveryWindowStart - from;
+        const prev = feed.scrollTop;
+        feed.insertAdjacentHTML("afterbegin", html);
+        feed.scrollTop = prev + added * pageStep();
+        discoveryWindowStart = from;
+    };
+
     feed.addEventListener("scroll", () => {
         if (scrollTick) {
             return;
         }
         scrollTick = requestAnimationFrame(() => {
             scrollTick = null;
-            const cards = [...feed.querySelectorAll(".discovery-card")];
-            if (!cards.length) {
+            if (!discoveryList.length) {
                 return;
             }
-            const mid = feed.scrollTop + feed.clientHeight / 2;
-            let best = cards[0];
-            let bestDist = Infinity;
-            cards.forEach(card => {
-                const center = card.offsetTop + card.offsetHeight / 2;
-                const dist = Math.abs(center - mid);
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    best = card;
-                }
-            });
-            const idx = Number(best.dataset.discoveryIndex);
-            if (!Number.isNaN(idx) && idx !== discoveryIndex) {
-                discoveryIndex = idx;
-            }
+            discoveryIndex = indexFromScroll();
+            appendAhead();
         });
     }, { passive: true });
 
-    const shiftWindow = () => {
-        const localPos = discoveryIndex - discoveryWindowStart;
-        if (localPos > 1 && localPos < DISCOVERY_WINDOW - 2) {
+    feed.addEventListener("scrollend", () => {
+        if (touching) {
             return;
         }
-        const keepId = discoveryList[discoveryIndex] && discoveryList[discoveryIndex].id;
-        renderDiscoveryFeed();
-        const again = feed.querySelector(`[data-album-id="${keepId}"]`);
-        if (again) {
-            again.scrollIntoView({ block: "start", behavior: "auto" });
-        }
-    };
-
-    let settleTimer = null;
-    feed.addEventListener("scroll", () => {
-        clearTimeout(settleTimer);
-        settleTimer = setTimeout(shiftWindow, 180);
-    }, { passive: true });
-    feed.addEventListener("scrollend", shiftWindow);
+        prependBehind();
+    });
 
     // Horizontal swipe to open tracklist
     let touchX = null;
     let touchY = null;
     feed.addEventListener("touchstart", event => {
+        touching = true;
         const t = event.changedTouches[0];
         touchX = t.clientX;
         touchY = t.clientY;
     }, { passive: true });
 
+    feed.addEventListener("touchcancel", () => {
+        touching = false;
+        touchX = null;
+        touchY = null;
+    }, { passive: true });
+
     feed.addEventListener("touchend", event => {
+        touching = false;
         if (touchX === null) {
             return;
         }

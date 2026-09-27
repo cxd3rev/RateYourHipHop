@@ -3008,12 +3008,14 @@ body {
     height: var(--discovery-page);
     max-height: var(--discovery-page);
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: scroll;
     scroll-snap-type: y mandatory;
+    scroll-behavior: auto;
     scroll-padding-top: 0;
     scroll-padding-bottom: 0;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 
 .discovery-card {
@@ -3022,6 +3024,7 @@ body {
     min-height: var(--discovery-page);
     max-height: var(--discovery-page);
     scroll-snap-align: start;
+    scroll-snap-stop: normal;
     scroll-margin: 0;
     display: flex;
     align-items: stretch;
