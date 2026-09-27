@@ -1649,10 +1649,12 @@ function renderExpandedSearch(query) {
         .map(entry => entry);
 
     const artistHits = [];
+    const artistCounts = new Map();
     const seen = new Set();
     albums.forEach(album => {
         splitArtistNames(album.artist).forEach(name => {
             const key = name.toLowerCase();
+            artistCounts.set(key, (artistCounts.get(key) || 0) + 1);
             if (key.includes(q) && !seen.has(key)) {
                 seen.add(key);
                 artistHits.push(name);
@@ -1694,21 +1696,34 @@ function renderExpandedSearch(query) {
         `;
     }).join("");
 
+    const artistHtml = artistHits.slice(0, 12).map(name => {
+        const count = artistCounts.get(name.toLowerCase()) || 0;
+        const initial = escapeHtml(name.trim().charAt(0).toUpperCase() || "?");
+        return `
+            <button type="button" class="search-hit" data-search-artist="${encodeURIComponent(name)}">
+                <span class="search-hit-mark" aria-hidden="true">${initial}</span>
+                <span class="search-hit-copy">
+                    <strong>${escapeHtml(name)}</strong>
+                    <span>${count} album${count === 1 ? "" : "s"}</span>
+                </span>
+            </button>
+        `;
+    }).join("");
+
     const sections = [];
-    if (albumHits.length) {
-        sections.push(`<section><h3>Albums</h3><div>${albumHtml}</div></section>`);
-    }
-    if (artistHits.length) {
-        sections.push(`
-            <section>
-                <h3>Artists</h3>
-                <div class="saved-chip-list">
-                    ${artistHits.slice(0, 12).map(name => `
-                        <button type="button" class="saved-chip" data-search-artist="${encodeURIComponent(name)}">${escapeHtml(name)}</button>
-                    `).join("")}
-                </div>
-            </section>
-        `);
+    const artistFirst = artistHits.some(name => name.toLowerCase().startsWith(q));
+    const artistSection = artistHits.length
+        ? `<section><h3>Artists</h3><div>${artistHtml}</div></section>`
+        : "";
+    const albumSection = albumHits.length
+        ? `<section><h3>Albums</h3><div>${albumHtml}</div></section>`
+        : "";
+    if (artistFirst) {
+        if (artistSection) sections.push(artistSection);
+        if (albumSection) sections.push(albumSection);
+    } else {
+        if (albumSection) sections.push(albumSection);
+        if (artistSection) sections.push(artistSection);
     }
     if (userHits.length) {
         sections.push(`

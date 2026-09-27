@@ -2771,6 +2771,11 @@ body {
 .search-panel .search-container {
     width: 100%;
     max-width: none;
+    flex: 0 0 auto;
+    flex-basis: auto;
+    order: 0;
+    height: 48px;
+    min-height: 48px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2800,13 +2805,13 @@ body {
 }
 
 .search-results {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
-    margin-top: 12px;
+    margin-top: 14px;
     overflow: auto;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 22px;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -2820,8 +2825,22 @@ body {
     background: transparent;
     border: 0;
     color: #fff;
-    padding: 8px 0;
+    padding: 10px 0;
+    min-height: 64px;
     border-bottom: 1px solid #1c1c1c;
+}
+
+.search-hit-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1c1c1c;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
 }
 
 .search-hit img {
