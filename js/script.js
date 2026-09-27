@@ -2894,7 +2894,7 @@ function setRatingFromLine(event, line) {
 
     currentRating =
         Math.round(
-            (1 - scoreT) * 100
+            scoreT * 100
         ) / 10;
 
 
@@ -2936,7 +2936,7 @@ function updateInlineSongRater() {
         const percent =
             songLinePercent !== null
             ? songLinePercent * 100
-            : (1 - currentRating / 10) * 100;
+            : (currentRating / 10) * 100;
 
 
         dot.style.left =
@@ -3760,7 +3760,7 @@ function updateRainbowDot(score) {
 
 
     const percent =
-        (1 - score / 10) * 100;
+        (score / 10) * 100;
 
 
     dot.style.left =

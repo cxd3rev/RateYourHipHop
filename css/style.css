@@ -885,13 +885,13 @@ h1 {
     background:
         linear-gradient(
             90deg,
-            #ff2f92,
-            #9d35ff,
-            #286eff,
-            #24d879,
-            #e7e72b,
+            #ff2d2d,
             #ff941f,
-            #ff2d2d
+            #e7e72b,
+            #24d879,
+            #286eff,
+            #9d35ff,
+            #ff2f92
         );
 }
 
