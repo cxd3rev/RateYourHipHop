@@ -4545,3 +4545,57 @@ body.is-rating #albumResult:not(.hidden) {
         min-height: 54px;
     }
 }
+
+.poster-card {
+    background: #1a1a1a;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.poster-face,
+.poster-page {
+    background: transparent;
+}
+
+.poster-page {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    color: #f5f5f5;
+}
+
+.poster-card.is-large {
+    perspective: none;
+    width: min(92vw, 420px);
+    max-height: none;
+    overflow: visible;
+    border-radius: 16px;
+}
+
+.poster-card.is-large .poster-tracks {
+    position: relative;
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+    margin: 4px 0 0;
+    font-size: 15px;
+    line-height: 1.45;
+    color: inherit;
+}
+
+.poster-card.is-light,
+.poster-card.is-light .poster-page,
+.poster-card.is-light .poster-face,
+.poster-card.is-light .poster-score-row strong {
+    color: #141414;
+}
+
+.poster-card.is-light .poster-artist,
+.poster-card.is-light .poster-track-num {
+    color: rgba(0, 0, 0, 0.62);
+}
+
+.poster-card.is-light .poster-logo {
+    filter: brightness(0);
+}

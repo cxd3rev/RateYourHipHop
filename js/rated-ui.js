@@ -1430,10 +1430,117 @@ function posterScoreRow(yours) {
     `;
 }
 
-function posterWash(album) {
+const posterColorCache = new Map();
+
+function albumMainColor(album) {
+    if (!album) {
+        return Promise.resolve({ color: "#1a1a1a", light: false });
+    }
+    if (posterColorCache.has(album.id)) {
+        return Promise.resolve(posterColorCache.get(album.id));
+    }
+    return new Promise(resolve => {
+        const finish = (value) => {
+            posterColorCache.set(album.id, value);
+            resolve(value);
+        };
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            try {
+                const size = 32;
+                const canvas = document.createElement("canvas");
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                ctx.drawImage(img, 0, 0, size, size);
+                const data = ctx.getImageData(0, 0, size, size).data;
+                const buckets = new Map();
+                for (let i = 0; i < data.length; i += 4) {
+                    const pr = data[i];
+                    const pg = data[i + 1];
+                    const pb = data[i + 2];
+                    if (data[i + 3] < 200) {
+                        continue;
+                    }
+                    const max = Math.max(pr, pg, pb);
+                    const min = Math.min(pr, pg, pb);
+                    const lum = 0.2126 * pr + 0.7152 * pg + 0.0722 * pb;
+                    if (lum < 16 || lum > 245) {
+                        continue;
+                    }
+                    const sat = max === 0 ? 0 : (max - min) / max;
+                    const key = `${pr >> 4},${pg >> 4},${pb >> 4}`;
+                    const bucket = buckets.get(key) || { n: 0, r: 0, g: 0, b: 0, sat: 0 };
+                    bucket.n += 1;
+                    bucket.r += pr;
+                    bucket.g += pg;
+                    bucket.b += pb;
+                    bucket.sat += sat;
+                    buckets.set(key, bucket);
+                }
+                let best = null;
+                buckets.forEach(bucket => {
+                    const score = bucket.n * (0.35 + (bucket.sat / bucket.n));
+                    if (!best || score > best.score) {
+                        best = { score, bucket };
+                    }
+                });
+                if (!best) {
+                    finish({ color: "#1a1a1a", light: false });
+                    return;
+                }
+                const r = Math.round(best.bucket.r / best.bucket.n);
+                const g = Math.round(best.bucket.g / best.bucket.n);
+                const b = Math.round(best.bucket.b / best.bucket.n);
+                const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                finish({
+                    color: `rgb(${r}, ${g}, ${b})`,
+                    light: lum > 170
+                });
+            } catch (error) {
+                finish({ color: "#1a1a1a", light: false });
+            }
+        };
+        img.onerror = () => finish({ color: "#1a1a1a", light: false });
+        img.src = coverSrc(album.cover, 120);
+    });
+}
+
+function paintPosterColors(root) {
+    const scope = root || document;
+    scope.querySelectorAll("[data-poster-album]").forEach(card => {
+        const album = albumById.get(Number(card.dataset.posterAlbum));
+        if (!album) {
+            return;
+        }
+        albumMainColor(album).then(result => {
+            card.style.background = result.color;
+            card.classList.toggle("is-light", result.light);
+        });
+    });
+}
+
+function posterCover(album, large) {
     return `
-        <div class="poster-wash" aria-hidden="true">
-            <img src="${coverSrc(album.cover, 80)}" alt="">
+        <img
+            class="poster-cover"
+            src="${coverSrc(album.cover, large ? 500 : 250)}"
+            alt="${escapeHtml(album.title)}"
+            loading="lazy"
+            decoding="async"
+            width="250"
+            height="250"
+        >
+    `;
+}
+
+function posterCopy(album, yours) {
+    return `
+        <div class="poster-copy">
+            <h3 class="poster-title">${escapeHtml(album.title)}</h3>
+            <p class="poster-artist">${escapeHtml(album.artist)}</p>
+            ${posterScoreRow(yours)}
         </div>
     `;
 }
@@ -1441,30 +1548,14 @@ function posterWash(album) {
 function createPosterCard(album, options = {}) {
     const yours = getAlbumRating(album.id);
     const large = Boolean(options.large);
-    const front = `
-        <div class="poster-face poster-front">
-            ${posterWash(album)}
-            <img
-                class="poster-cover"
-                src="${coverSrc(album.cover, large ? 500 : 250)}"
-                alt="${escapeHtml(album.title)}"
-                loading="lazy"
-                decoding="async"
-                width="250"
-                height="250"
-            >
-            <div class="poster-copy">
-                <h3 class="poster-title">${escapeHtml(album.title)}</h3>
-                <p class="poster-artist">${escapeHtml(album.artist)}</p>
-                ${posterScoreRow(yours)}
-            </div>
-        </div>
-    `;
 
     if (!large) {
         return `
             <article class="poster-card" data-poster-album="${album.id}" onclick="openPosterModal(${album.id})">
-                ${front}
+                <div class="poster-face poster-front">
+                    ${posterCover(album, false)}
+                    ${posterCopy(album, yours)}
+                </div>
             </article>
         `;
     }
@@ -1485,13 +1576,10 @@ function createPosterCard(album, options = {}) {
 
     return `
         <article class="poster-card is-large" data-poster-album="${album.id}">
-            <div class="poster-flip" onclick="flipPosterCard(this)">
-                ${front}
-                <div class="poster-face poster-back">
-                    ${posterWash(album)}
-                    <ol class="poster-tracks">${tracks}</ol>
-                    ${posterScoreRow(yours)}
-                </div>
+            <div class="poster-page">
+                ${posterCover(album, true)}
+                ${posterCopy(album, yours)}
+                <ol class="poster-tracks">${tracks}</ol>
             </div>
         </article>
     `;
@@ -1508,6 +1596,7 @@ function renderProfilePosters() {
         return;
     }
     grid.innerHTML = rated.map(album => createPosterCard(album)).join("");
+    paintPosterColors(grid);
 }
 
 function openPosterModal(albumId) {
@@ -1518,6 +1607,7 @@ function openPosterModal(albumId) {
         return;
     }
     body.innerHTML = createPosterCard(album, { large: true });
+    paintPosterColors(body);
     modal.classList.remove("hidden");
 }
 
