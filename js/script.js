@@ -344,6 +344,8 @@ async function checkLogin() {
 
 function hideAllPages() {
 
+    document.body.classList.remove("is-rating");
+
     document
         .querySelectorAll(".page")
         .forEach(page => {
@@ -2216,7 +2218,90 @@ function renderAlbumHero() {
         : "—";
 
 
+    updateRateStage();
+
     updateLiveScoreDisplays();
+
+}
+
+
+function updateRateStage() {
+
+    if (!currentAlbum) {
+
+        return;
+
+    }
+
+
+    const song =
+        currentAlbum.songs[currentSongIndex] || "";
+
+    const total =
+        currentAlbum.songs.length;
+
+    const title =
+        document.getElementById("rateSongTitle");
+
+    const index =
+        document.getElementById("rateTrackIndex");
+
+    const albumName =
+        document.getElementById("rateAlbumName");
+
+    const artistName =
+        document.getElementById("rateArtistName");
+
+    const cover =
+        document.getElementById("rateCover");
+
+    const wash =
+        document.getElementById("rateWash");
+
+
+    if (title) {
+
+        title.textContent = song;
+
+    }
+
+    if (index) {
+
+        index.textContent =
+            `${currentSongIndex + 1}  /  ${total}`;
+
+    }
+
+    if (albumName) {
+
+        albumName.textContent = currentAlbum.title;
+
+    }
+
+    if (artistName) {
+
+        artistName.textContent = currentAlbum.artist;
+
+    }
+
+
+    const src = coverSrc(currentAlbum.cover, 500);
+
+    if (cover && cover.getAttribute("src") !== src) {
+
+        cover.src = src;
+        cover.alt = currentAlbum.title;
+
+    }
+
+    if (wash && wash.getAttribute("src") !== src) {
+
+        wash.src = src;
+
+    }
+
+
+    document.body.classList.add("is-rating");
 
 }
 
@@ -2445,9 +2530,6 @@ function setupStickyRatingChrome() {
 
 function scrollSelectedSongIntoView(row) {
 
-    const mobile = true;
-
-
     const target =
         row
         ||
@@ -2456,162 +2538,42 @@ function scrollSelectedSongIntoView(row) {
         );
 
 
-    if (!target) {
+    const list =
+        document.getElementById("songsList");
+
+
+    if (!target || !list) {
 
         return;
 
     }
 
 
-    if (!mobile) {
+    const item =
+        target.closest(".song-item") || target;
 
-        const rater =
-            document.getElementById(
-                "songRater"
-            );
-
-
-        const desktopTarget =
-            (
-                rater
-                &&
-                rater.offsetParent
-            )
-            ? rater
-            : target;
+    const left =
+        item.offsetLeft
+        -
+        (list.clientWidth - item.offsetWidth) / 2;
 
 
-        desktopTarget.scrollIntoView({
-            block: "nearest",
-            behavior: "smooth"
-        });
-
-        return;
-
-    }
-
-
-    const snap = () => {
-
-        const song =
-            document.querySelector(
-                `.song-row[data-index="${currentSongIndex}"]`
-            );
-
-
-        if (!song) {
-
-            return;
-
-        }
-
-
-        syncStickyRatingChrome();
-
-
-        const nav =
-            document.querySelector(
-                ".navbar"
-            );
-
-
-        const sticky =
-            document.querySelector(
-                ".rating-section"
-            );
-
-
-        const targetTop =
-            (nav ? nav.offsetHeight : 0)
-            +
-            (sticky ? sticky.offsetHeight : 0)
-            +
-            8;
-
-
-        const delta =
-            song.getBoundingClientRect().top -
-            targetTop;
-
-
-        if (Math.abs(delta) > 1) {
-
-            window.scrollTo({
-                top:
-                    window.scrollY +
-                    delta,
-                behavior: "auto"
-            });
-
-        }
-
-    };
-
-
-    snap();
-
-    requestAnimationFrame(snap);
-
-    setTimeout(snap, 60);
-
-    setTimeout(snap, 140);
+    list.scrollTo({
+        left: Math.max(0, left),
+        behavior: "auto"
+    });
 
 }
 
 
 function parkSongRater() {
 
-    const rater =
-        document.getElementById(
-            "songRater"
-        );
-
-
-    const list =
-        document.getElementById(
-            "songsList"
-        );
-
-
-    if (rater && list) {
-
-        list.after(rater);
-
-    }
-
 }
 
 
 function placeSongRater() {
 
-    const rater =
-        document.getElementById(
-            "songRater"
-        );
-
-
-    const item =
-        document.querySelector(
-            `.song-item[data-index="${currentSongIndex}"]`
-        );
-
-
-    if (!rater) {
-
-        return;
-
-    }
-
-
-    if (item) {
-
-        item.appendChild(rater);
-
-    } else {
-
-        parkSongRater();
-
-    }
+    updateRateStage();
 
 }
 

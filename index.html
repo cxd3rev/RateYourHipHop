@@ -39,15 +39,15 @@
 
     <link
         rel="stylesheet"
-        href="css/style.css?v=62"
+        href="css/style.css?v=63"
     >
 
     <script src="js/albums.js?v=55" defer></script>
     <script src="js/artistPhotos.js?v=44" defer></script>
     <script src="js/globalRatings.js?v=53" defer></script>
     <script src="js/genres.js?v=44" defer></script>
-    <script src="js/script.js?v=48" defer></script>
-    <script src="js/rated-ui.js?v=56" defer></script>
+    <script src="js/script.js?v=49" defer></script>
+    <script src="js/rated-ui.js?v=57" defer></script>
 
 </head>
 
@@ -260,97 +260,42 @@
     class="page hidden"
 >
 
-    <button
-        class="back-button"
-        onclick="goBackFromAlbum()"
-    >
-        ← Back
-    </button>
+    <div class="rate-stage">
 
-    <div
-        id="albumProgressBar"
-        class="album-progress-bar"
-    >
-        <div class="album-progress-copy">
-            <span id="stickyAlbumStatus" class="small-label">YOUR ALBUM RATING</span>
-            <strong id="stickyYourScore" class="sticky-score">—</strong>
-        </div>
-        <span id="stickyTrackCount" class="sticky-count">0 / 0 TRACKS RATED</span>
-    </div>
+        <img class="rate-wash" id="rateWash" alt="" width="64" height="64">
 
-    <div id="albumHero"></div>
+        <div class="rate-stage-inner">
 
-    <div class="rating-section">
-
-        <div class="rating-header">
-
-            <div>
-
-                <span class="small-label">
-                    ALBUM SCORE
-                </span>
-
-                <div
-                    id="currentAlbumScore"
-                    class="big-score"
-                >
-                    —
-                </div>
-
-            </div>
-
-            <div class="rating-header-actions">
-
-                <div class="rating-instructions">
-                    Drag to rate this song
-                </div>
+            <div class="rate-top">
 
                 <button
-                    type="button"
-                    class="reset-album-button hidden"
-                    onclick="resetAlbumRating()"
+                    class="rate-back"
+                    onclick="goBackFromAlbum()"
+                    aria-label="Back"
                 >
-                    Reset ratings
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </button>
 
-            </div>
-
-        </div>
-
-        <div class="rainbow-rating">
-
-            <span>0.0</span>
-
-            <div class="rainbow-line">
-                <div
-                    id="rainbowDot"
-                    class="rainbow-dot"
-                ></div>
-            </div>
-
-            <span>10.0</span>
-
-        </div>
-
-    </div>
-
-    <div class="songs-layout">
-
-        <div class="songs-column">
-
-            <div class="songs-header">
-
-                <div class="songs-header-track">
-                    <span>TRACK</span>
-                    <span>YOUR SCORE</span>
+                <div class="rate-album-meta">
+                    <img
+                        class="rate-mark"
+                        src="assets/rated-wordmark-light.png?v=44"
+                        alt="RATED"
+                    >
+                    <strong id="rateAlbumName"></strong>
+                    <span id="rateArtistName"></span>
                 </div>
 
-                <span>FRIENDS</span>
-                <span>GLOBAL</span>
+                <span id="stickyTrackCount" class="rate-count">0 / 0</span>
 
             </div>
 
-            <div id="songsList"></div>
+            <img class="rate-cover" id="rateCover" alt="" width="240" height="240">
+
+            <p class="rate-kicker" id="rateTrackIndex">1 / 1</p>
+            <h2 class="rate-song-title" id="rateSongTitle"></h2>
 
             <div
                 id="songRater"
@@ -415,6 +360,45 @@
                 </button>
 
             </div>
+
+            <div class="rate-album-line">
+
+                <span id="stickyAlbumStatus" class="rate-album-label">ALBUM</span>
+                <strong id="stickyYourScore" class="rate-album-score">—</strong>
+                <strong id="currentAlbumScore" class="rate-album-score rate-album-score-live">—</strong>
+
+                <div class="rainbow-rating rate-album-rainbow">
+
+                    <div class="rainbow-line">
+                        <div
+                            id="rainbowDot"
+                            class="rainbow-dot"
+                        ></div>
+                    </div>
+
+                </div>
+
+            </div>
+
+    <div id="albumHero" hidden></div>
+
+    <div class="songs-layout">
+
+        <div class="songs-column">
+
+            <div class="songs-header">
+
+                <div class="songs-header-track">
+                    <span>TRACK</span>
+                    <span>YOUR SCORE</span>
+                </div>
+
+                <span>FRIENDS</span>
+                <span>GLOBAL</span>
+
+            </div>
+
+            <div id="songsList"></div>
 
         </div>
 
@@ -500,6 +484,10 @@
             </p>
 
         </aside>
+
+    </div>
+
+        </div>
 
     </div>
 

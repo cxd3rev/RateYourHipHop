@@ -1846,14 +1846,14 @@ function updateTrackProgressChrome() {
         applyScoreColor(scoreEl, live);
     }
     if (countEl) {
-        countEl.textContent = `${ratedCount} / ${total} TRACKS RATED`;
+        countEl.textContent = `${ratedCount} / ${total}`;
     }
     if (statusEl) {
         if (ratedCount === total && total > 0) {
-            statusEl.textContent = "ALBUM RATED";
+            statusEl.textContent = "DONE";
             statusEl.classList.add("is-complete");
         } else {
-            statusEl.textContent = "YOUR ALBUM RATING";
+            statusEl.textContent = "ALBUM";
             statusEl.classList.remove("is-complete");
         }
     }
