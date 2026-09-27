@@ -1608,6 +1608,12 @@ h1 {
     background: #ddd;
 }
 
+.save-album-button:disabled {
+    opacity: 1;
+    background: white;
+    color: black;
+}
+
 
 /* =====================================================
    ARTISTS

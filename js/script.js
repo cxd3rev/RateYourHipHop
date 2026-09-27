@@ -4304,6 +4304,28 @@ function finishAlbum() {
         : "Create an account to permanently save this rating.";
 
 
+    const saveButton =
+        document.getElementById(
+            "saveAlbumButton"
+        );
+
+
+    if (saveButton) {
+
+        saveButton.textContent = "Save Album";
+        saveButton.disabled = false;
+
+    }
+
+
+    if (albumResultTimer) {
+
+        clearTimeout(albumResultTimer);
+        albumResultTimer = null;
+
+    }
+
+
     document
         .getElementById("albumResult")
         .classList.remove("hidden");
@@ -4315,11 +4337,63 @@ function finishAlbum() {
    HIDE RESULT
 ===================================================== */
 
+let albumResultTimer = null;
+
+
 function hideAlbumResult() {
+
+    if (albumResultTimer) {
+
+        clearTimeout(albumResultTimer);
+        albumResultTimer = null;
+
+    }
+
 
     document
         .getElementById("albumResult")
         .classList.add("hidden");
+
+}
+
+
+function markAlbumSavedAndClose() {
+
+    const button =
+        document.getElementById(
+            "saveAlbumButton"
+        );
+
+
+    if (button) {
+
+        button.textContent = "Saved";
+        button.disabled = true;
+
+    }
+
+
+    document.getElementById(
+        "albumSaveMessage"
+    ).textContent = "Saved";
+
+
+    if (albumResultTimer) {
+
+        clearTimeout(albumResultTimer);
+
+    }
+
+
+    albumResultTimer = setTimeout(
+        () => {
+
+            albumResultTimer = null;
+            hideAlbumResult();
+
+        },
+        1000
+    );
 
 }
 
@@ -5293,10 +5367,7 @@ async function handleSaveAlbum() {
         token.startsWith("local-")
     ) {
 
-        document.getElementById(
-            "albumSaveMessage"
-        ).textContent =
-            "Saved permanently to your account.";
+        markAlbumSavedAndClose();
 
         renderAlbums();
 
@@ -5355,10 +5426,7 @@ async function handleSaveAlbum() {
         }
 
 
-        document.getElementById(
-            "albumSaveMessage"
-        ).textContent =
-            "Saved permanently to your account.";
+        markAlbumSavedAndClose();
 
 
         /*
