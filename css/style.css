@@ -2105,7 +2105,7 @@ h1 {
    RESPONSIVE
 ===================================================== */
 
-@media (max-width: 1100px) {
+@media all {
 
     .navbar {
         padding-left: 20px;
@@ -2283,7 +2283,7 @@ h1 {
 }
 
 
-@media (max-width: 900px) {
+@media all {
 
     .nav-links .nav-button {
         display: none;
@@ -2374,7 +2374,7 @@ h1 {
 }
 
 
-@media (max-width: 650px) {
+@media all {
 
     .page-header-row {
         flex-direction: column;
@@ -2751,15 +2751,7 @@ body {
 }
 
 .desktop-only {
-    display: none;
-}
-
-@media (min-width: 1000px) {
-    .desktop-only {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+    display: none !important;
 }
 
 .search-panel {
@@ -4051,39 +4043,93 @@ main#app {
     display: none !important;
 }
 
-@media (min-width: 900px) {
-    :root {
-        --nav-height: 72px;
-        --home-tabs-h: 56px;
-        --discovery-page: calc(100dvh - var(--nav-height) - var(--home-tabs-h));
-    }
+/* =====================================================
+   PHONE APP
+   The phone layout is the product. A wider window just
+   shows that same phone, centered. It does not stretch.
+===================================================== */
 
-    .discovery-feed {
-        height: var(--discovery-page);
-        max-height: var(--discovery-page);
-        max-width: 480px;
-        margin: 0 auto;
-    }
-
-    .discovery-card {
-        height: var(--discovery-page);
-        min-height: var(--discovery-page);
-        max-height: var(--discovery-page);
-    }
-
-    .poster-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-    }
-
-    .home-tabs {
-        max-width: 480px;
-        margin: 0 auto;
-    }
+:root {
+    --app-w: 430px;
 }
 
-@media (min-width: 1100px) {
-    .poster-grid {
-        grid-template-columns: repeat(4, 1fr);
+html {
+    background: #000;
+    overscroll-behavior: none;
+}
+
+body {
+    width: min(100%, var(--app-w));
+    max-width: var(--app-w);
+    margin: 0 auto;
+    min-height: 100dvh;
+    background: #080808;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior-y: none;
+}
+
+button,
+.home-tab,
+.tab-button,
+.genre-chip,
+.icon-button,
+.discovery-primary,
+.discovery-save,
+.nav-button {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+* {
+    scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+input,
+textarea,
+select {
+    font-size: 16px;
+}
+
+.navbar {
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+.app-tabbar,
+.search-panel,
+.modal-overlay {
+    left: 50%;
+    right: auto;
+    width: min(100%, var(--app-w));
+    max-width: var(--app-w);
+    transform: translateX(-50%);
+}
+
+.poster-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.tab-button:active,
+.home-tab:active,
+.icon-button:active,
+.discovery-primary:active,
+.discovery-save:active {
+    opacity: 0.7;
+}
+
+@media (min-width: 431px) {
+    body {
+        min-height: 100dvh;
+        box-shadow: 0 0 0 1px #1a1a1a;
     }
 }

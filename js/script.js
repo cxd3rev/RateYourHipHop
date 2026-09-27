@@ -2445,10 +2445,7 @@ function setupStickyRatingChrome() {
 
 function scrollSelectedSongIntoView(row) {
 
-    const mobile =
-        window.matchMedia(
-            "(max-width: 1100px)"
-        ).matches;
+    const mobile = true;
 
 
     const target =
