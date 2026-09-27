@@ -4599,3 +4599,36 @@ body.is-rating #albumResult:not(.hidden) {
 .poster-card.is-light .poster-logo {
     filter: brightness(0);
 }
+
+.poster-modal.modal-overlay {
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 16px;
+    touch-action: pan-y;
+}
+
+.poster-modal .poster-modal-body {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(88dvh, 100%);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
+}
+
+.poster-modal .poster-card.is-large,
+.poster-modal .poster-page,
+.poster-modal .poster-tracks {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.poster-modal .poster-card.is-large {
+    overflow: hidden;
+}
