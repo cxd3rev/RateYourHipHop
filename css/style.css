@@ -4704,7 +4704,7 @@ html.poster-open {
     min-width: 0;
     min-height: 0;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 14px;
 }
 
 .poster-modal .poster-copy {
