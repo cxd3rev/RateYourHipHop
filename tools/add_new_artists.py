@@ -27,7 +27,9 @@ SKIP_TITLE = re.compile(
 NON_GENRES = {85, 98, 106, 113, 129, 132, 169, 173, 466, 2}
 HIPHOP_GENRE_IDS = {116}  # Deezer Rap/Hip Hop
 # Full projects for artists added in a run. 1–2 track singles stay out.
-MAX_ALBUMS_PER_ARTIST = 120
+# Older imports sliced this at 12 and left discographies incomplete.
+# tools/backfill_existing_albums.py does not slice at all.
+MAX_ALBUMS_PER_ARTIST = 400
 MIN_TRACKS = 3
 MAX_TRACKS = 40
 MIN_YEAR = 1979
