@@ -4,6 +4,7 @@
 ===================================================== */
 
 let homeTab = "albums";
+let forYouLive = false;
 let discoveryIndex = 0;
 let discoveryList = [];
 let discoveryWindowStart = 0;
@@ -61,6 +62,9 @@ function toggleCollectAlbum(albumId, event) {
     let list = readSaveList("Albums");
     if (list.includes(id)) {
         list = list.filter(x => x !== id);
+    } else if (typeof albumHasUserRatings === "function" && albumHasUserRatings(id)) {
+        refreshCollectButtons(id);
+        return false;
     } else {
         list.push(id);
         pushInboxEvent({
@@ -71,8 +75,9 @@ function toggleCollectAlbum(albumId, event) {
         });
     }
     writeSaveList("Albums", list);
+    pruneRatedSavedAlbums(false);
     refreshCollectButtons(id);
-    return list.includes(id);
+    return isAlbumCollected(id);
 }
 
 function isArtistSaved(name) {
@@ -192,6 +197,129 @@ function toggleSaveGenre(tag, event) {
     }
     writeSaveList("Genres", list);
     if (typeof renderProfilePage === "function") {
+        renderProfileCollections();
+    }
+}
+
+function songSaveId(albumId, songIndex) {
+    return `${Number(albumId)}:${Number(songIndex)}`;
+}
+
+function savedSongEntries() {
+    return readSaveList("Songs").filter(item => item && typeof item === "object" && item.id);
+}
+
+function isSongSaved(albumId, songIndex) {
+    const id = songSaveId(albumId, songIndex);
+    return savedSongEntries().some(item => item.id === id);
+}
+
+function refreshSongSaveButtons() {
+    document.querySelectorAll("[data-save-song]").forEach(btn => {
+        const parts = String(btn.dataset.saveSong || "").split(":");
+        const saved = isSongSaved(parts[0], parts[1]);
+        btn.classList.toggle("is-saved", saved);
+        btn.setAttribute("aria-pressed", saved ? "true" : "false");
+        btn.setAttribute("aria-label", saved ? "Saved" : "Save song");
+        const label = btn.querySelector(".song-save-label");
+        if (label) {
+            label.textContent = saved ? "Saved" : "Save song";
+        }
+    });
+}
+
+function saveRatedSong(albumId, songIndex, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    if (!currentUser) {
+        openAuth();
+        return false;
+    }
+    const id = songSaveId(albumId, songIndex);
+    let list = savedSongEntries();
+    const btn = event && event.currentTarget ? event.currentTarget : null;
+    if (list.some(item => item.id === id)) {
+        writeSaveList("Songs", list.filter(item => item.id !== id));
+        refreshSongSaveButtons();
+        if (profileCollectionTab === "songs") {
+            renderProfileCollections();
+        }
+        return false;
+    }
+    if (btn && btn.dataset.spark === "1") {
+        return true;
+    }
+    const album = albumById.get(Number(albumId));
+    list.push({
+        id,
+        albumId: Number(albumId),
+        songIndex: Number(songIndex),
+        title: album && album.songs ? album.songs[songIndex] : "",
+        artist: album ? album.artist : "",
+        albumTitle: album ? album.title : ""
+    });
+    writeSaveList("Songs", list);
+    if (btn) {
+        btn.dataset.spark = "1";
+        btn.classList.add("is-sparkling");
+        window.setTimeout(() => {
+            btn.dataset.spark = "0";
+            btn.classList.remove("is-sparkling");
+            refreshSongSaveButtons();
+        }, 460);
+    } else {
+        refreshSongSaveButtons();
+    }
+    if (profileCollectionTab === "songs") {
+        renderProfileCollections();
+    }
+    return true;
+}
+
+function openSavedSong(albumId, songIndex) {
+    const album = albumById.get(Number(albumId));
+    if (!album || typeof openAlbum !== "function") {
+        return;
+    }
+    openAlbum(album.id);
+    const index = Math.max(0, Math.min(album.songs.length - 1, Number(songIndex) || 0));
+    if (typeof selectSong === "function") {
+        selectSong(index);
+    }
+    if (typeof updateRateStage === "function") {
+        updateRateStage();
+    }
+    if (typeof updateCurrentSongScoreDisplay === "function") {
+        updateCurrentSongScoreDisplay();
+    }
+}
+
+function pruneRatedSavedAlbums(refresh) {
+    if (!currentUser || typeof albumHasUserRatings !== "function") {
+        return;
+    }
+    const list = readSaveList("Albums").map(id => Number(id));
+    const next = list.filter(id => !albumHasUserRatings(id));
+    if (next.length === list.length) {
+        return;
+    }
+    writeSaveList("Albums", next);
+    if (!refresh) {
+        return;
+    }
+    list.forEach(id => {
+        if (!next.includes(id)) {
+            refreshCollectButtons(id);
+        }
+    });
+    const page = document.getElementById("profilePage");
+    if (
+        profileCollectionTab === "albums"
+        && page
+        && !page.classList.contains("hidden")
+    ) {
         renderProfileCollections();
     }
 }
@@ -341,7 +469,20 @@ function renderInbox() {
 
 /* ---------- home tabs ---------- */
 
+function isForYouLive() {
+    return forYouLive;
+}
+
+function noteLeftForYou() {
+    forYouLive = false;
+}
+
+function resumeForYou() {
+    forYouLive = true;
+}
+
 function setHomeTab(tab) {
+    const enteringForYou = tab === "albums" && !forYouLive;
     homeTab = tab;
 
     document.querySelectorAll(".home-tab").forEach(btn => {
@@ -366,8 +507,16 @@ function setHomeTab(tab) {
         fresh.classList.toggle("hidden", tab !== "new");
     }
 
+    if (tab !== "albums") {
+        forYouLive = false;
+    }
+
     if (tab === "albums") {
-        renderDiscoveryFeed();
+        if (enteringForYou) {
+            discoveryIndex = 0;
+            renderDiscoveryFeed(buildDiscoveryList());
+            forYouLive = true;
+        }
     } else if (tab === "friends") {
         renderHomeFriendsActivity();
     } else if (tab === "best") {
@@ -621,15 +770,12 @@ async function renderNewReleases() {
 
 function buildDiscoveryList(source) {
     const list = (source || albums).slice();
-    // Prefer unrated first for discovery feel, then shuffle lightly by id
-    list.sort((a, b) => {
-        const ra = getAlbumRating(a.id) === null ? 0 : 1;
-        const rb = getAlbumRating(b.id) === null ? 0 : 1;
-        if (ra !== rb) {
-            return ra - rb;
-        }
-        return ((a.id * 17) % 97) - ((b.id * 17) % 97);
-    });
+    for (let i = list.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const swap = list[i];
+        list[i] = list[j];
+        list[j] = swap;
+    }
     return list;
 }
 
@@ -662,6 +808,10 @@ function renderDiscoveryFeed(list) {
         const absoluteIndex = start + i;
         return createDiscoveryCard(album, absoluteIndex);
     }).join("");
+
+    if (discoveryIndex === 0) {
+        feed.scrollTop = 0;
+    }
 
     // Jump scroll position to current card
     requestAnimationFrame(() => {
@@ -1560,6 +1710,8 @@ function createPosterCard(album, options = {}) {
         `;
     }
 
+    const count = (album.songs || []).length;
+    const density = count > 22 ? "is-dense" : count > 14 ? "is-compact" : "";
     const tracks = album.songs.map((song, index) => {
         const songScore = getSongRating(album.id, index);
         const scoreText = songScore !== null && songScore !== undefined
@@ -1575,7 +1727,7 @@ function createPosterCard(album, options = {}) {
     }).join("");
 
     return `
-        <article class="poster-card is-large" data-poster-album="${album.id}">
+        <article class="poster-card is-large ${density}" data-poster-album="${album.id}" data-track-count="${count}">
             <div class="poster-page">
                 ${posterCover(album, true)}
                 ${posterCopy(album, yours)}
@@ -1599,6 +1751,38 @@ function renderProfilePosters() {
     paintPosterColors(grid);
 }
 
+function fitPosterType(root) {
+    const tracks = root.querySelector(".poster-tracks");
+    const cover = root.querySelector(".poster-cover");
+    if (!tracks) {
+        return;
+    }
+    const rows = tracks.querySelectorAll("li");
+    if (!rows.length) {
+        return;
+    }
+    const apply = () => {
+        const height = rows[0].getBoundingClientRect().height;
+        const size = Math.min(13, Math.max(8, height * 0.72));
+        tracks.style.fontSize = `${size}px`;
+        tracks.style.lineHeight = "1";
+        return height;
+    };
+    let height = apply();
+    let guard = 0;
+    while (height < 11 && cover && guard < 14) {
+        const box = cover.getBoundingClientRect();
+        if (box.height <= 52) {
+            break;
+        }
+        const next = Math.max(52, box.height - 8);
+        cover.style.height = `${next}px`;
+        cover.style.width = `${next}px`;
+        height = apply();
+        guard += 1;
+    }
+}
+
 function openPosterModal(albumId) {
     const album = albumById.get(albumId);
     const modal = document.getElementById("posterModal");
@@ -1609,6 +1793,11 @@ function openPosterModal(albumId) {
     body.innerHTML = createPosterCard(album, { large: true });
     paintPosterColors(body);
     modal.classList.remove("hidden");
+    document.documentElement.classList.add("poster-open");
+    document.body.classList.add("poster-open");
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => fitPosterType(body));
+    });
 }
 
 function flipPosterCard(flip) {
@@ -1622,6 +1811,22 @@ function closePosterModal() {
     const modal = document.getElementById("posterModal");
     if (modal) {
         modal.classList.add("hidden");
+    }
+    document.documentElement.classList.remove("poster-open");
+    document.body.classList.remove("poster-open");
+}
+
+function showProfileSavedSongs() {
+    const page = document.getElementById("profilePage");
+    if (!page || page.classList.contains("hidden")) {
+        if (typeof showProfile === "function") {
+            showProfile();
+        }
+    }
+    setProfileCollectionTab("songs");
+    const anchor = document.querySelector(".profile-collection-tabs");
+    if (anchor) {
+        anchor.scrollIntoView({ block: "nearest" });
     }
 }
 
@@ -1639,12 +1844,14 @@ function renderProfileCollections() {
         return;
     }
 
+    pruneRatedSavedAlbums(false);
+
     if (profileCollectionTab === "albums") {
         const ids = readSaveList("Albums");
-        const list = ids.map(id => albumById.get(id)).filter(Boolean);
+        const list = ids.map(id => albumById.get(Number(id))).filter(Boolean);
         box.innerHTML = list.length
             ? list.map((album, index) => createAlbumCard(album, false, index + 1)).join("")
-            : `<div class="empty-state">No saved albums yet.</div>`;
+            : `<div class="empty-state">No albums saved to rate later.</div>`;
         return;
     }
 
@@ -1667,6 +1874,37 @@ function renderProfileCollections() {
                 </button>`;
             }).join("")}</div>`
             : `<div class="empty-state">Save artists from an album or artist page.</div>`;
+        return;
+    }
+
+    if (profileCollectionTab === "songs") {
+        const list = savedSongEntries().slice().reverse();
+        box.innerHTML = list.length
+            ? `<div class="saved-song-list">${list.map(item => {
+                const album = albumById.get(Number(item.albumId));
+                const title = item.title || (album && album.songs ? album.songs[item.songIndex] : "") || "Song";
+                const artist = item.artist || (album ? album.artist : "");
+                const albumTitle = item.albumTitle || (album ? album.title : "");
+                const cover = album ? coverSrc(album.cover, 120) : "";
+                return `
+                    <button
+                        type="button"
+                        class="saved-song-btn"
+                        onclick="openSavedSong(${Number(item.albumId)}, ${Number(item.songIndex)})"
+                    >
+                        ${cover
+                            ? `<img src="${cover}" alt="" width="52" height="52" loading="lazy" decoding="async">`
+                            : `<span class="saved-song-fallback" aria-hidden="true"></span>`
+                        }
+                        <span class="saved-song-copy">
+                            <strong>${escapeHtml(title)}</strong>
+                            <span>${escapeHtml(artist)}${albumTitle ? " · " + escapeHtml(albumTitle) : ""}</span>
+                        </span>
+                        <span class="saved-song-star" aria-hidden="true">★</span>
+                    </button>
+                `;
+            }).join("")}</div>`
+            : `<div class="empty-state">No saved songs yet. Use Save song while rating.</div>`;
         return;
     }
 
@@ -2056,8 +2294,9 @@ function renderFriendsActivityFeed() {
 
 function initRatedUI() {
     setupDiscoveryFeed();
-    setHomeTab("albums");
-    renderDiscoveryFeed(buildDiscoveryList());
+    if (!forYouLive) {
+        setHomeTab("albums");
+    }
 
     const progress = document.getElementById("albumProgressBar");
     if (progress) {

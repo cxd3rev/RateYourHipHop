@@ -344,6 +344,10 @@ async function checkLogin() {
 
 function hideAllPages() {
 
+    if (typeof noteLeftForYou === "function") {
+        noteLeftForYou();
+    }
+
     document.body.classList.remove("is-rating");
 
     document
@@ -416,7 +420,26 @@ function setActiveNav(activeId) {
 
 function showHome() {
 
+    const stayingOnForYou =
+        typeof isForYouLive === "function"
+        && isForYouLive()
+        && typeof homeTab === "string"
+        && homeTab === "albums"
+        && !(typeof searchOpen !== "undefined" && searchOpen);
+
     hideAllPages();
+
+    if (
+        typeof searchOpen !== "undefined"
+        && searchOpen
+        && typeof toggleSearch === "function"
+    ) {
+        toggleSearch(false);
+    }
+
+    if (typeof closePosterModal === "function") {
+        closePosterModal();
+    }
 
     setActiveNav("navHome");
 
@@ -426,8 +449,12 @@ function showHome() {
 
     renderAlbums();
 
+    if (stayingOnForYou && typeof resumeForYou === "function") {
+        resumeForYou();
+    }
+
     if (typeof setHomeTab === "function") {
-        setHomeTab(typeof homeTab === "string" ? homeTab : "albums");
+        setHomeTab("albums");
     }
 
 }
@@ -2343,6 +2370,10 @@ function renderSongs() {
                     index
                 );
 
+            const songSaved =
+                typeof isSongSaved === "function"
+                && isSongSaved(currentAlbum.id, index);
+
 
             return `
 
@@ -2402,6 +2433,17 @@ function renderSongs() {
 
                     </div>
 
+                    <button
+                        type="button"
+                        class="song-save ${songSaved ? "is-saved" : ""}"
+                        data-save-song="${currentAlbum.id}:${index}"
+                        aria-pressed="${songSaved ? "true" : "false"}"
+                        aria-label="${songSaved ? "Saved" : "Save song"}"
+                        onclick="event.stopPropagation(); saveRatedSong(${currentAlbum.id}, ${index}, event)"
+                    >
+                        <span class="song-save-star" aria-hidden="true">★</span>
+                        <span class="song-save-label">Save song</span>
+                    </button>
 
                     <div class="song-score song-score-friends">
                         —
@@ -3516,6 +3558,10 @@ function writeLiveSongRating() {
         currentSongIndex
     ] = currentRating;
 
+    if (typeof pruneRatedSavedAlbums === "function") {
+        pruneRatedSavedAlbums(true);
+    }
+
 }
 
 
@@ -3669,6 +3715,10 @@ function persistAccountRatings(immediate) {
             "ratedRatings_" + currentUser.id,
             JSON.stringify(guestRatings)
         );
+
+        if (typeof pruneRatedSavedAlbums === "function") {
+            pruneRatedSavedAlbums(true);
+        }
 
     };
 
@@ -4098,6 +4148,10 @@ function finishSongRating() {
 
 
     persistAccountRatings(true);
+
+    if (typeof pruneRatedSavedAlbums === "function") {
+        pruneRatedSavedAlbums(true);
+    }
 
     renderSongs();
 
