@@ -10,6 +10,7 @@ Deezer albums (genre_id 116 or genre name containing rap / hip hop / hip-hop).
 Resumes from data/hiphop-import-index.json. Pass --max-new to cap one run.
 """
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -180,14 +181,19 @@ def import_names(names, albums, state_sets, enqueue_related=None):
             enqueue_related(artist_id, display)
 
         picked = []
+        seen_cores = set()
         for release in releases:
             title = (release.get("title") or "").strip()
             record_type = (release.get("record_type") or "").lower()
-            tracks_n = release.get("nb_tracks") or 0
+            tracks_n = release.get("nb_tracks")
             genre_id = release.get("genre_id")
-            if record_type not in {"album", "mixtape", ""}:
+            if record_type not in {"album", "mixtape", "ep", ""}:
                 continue
-            if tracks_n and (tracks_n < 6 or tracks_n > 32):
+            # List rows often send nb_tracks as null. Only reject a known short single
+            # or an oversized dump here; otherwise the track list decides.
+            if isinstance(tracks_n, int) and tracks_n > 0 and (
+                tracks_n < catalog.MIN_TRACKS or tracks_n > catalog.MAX_TRACKS
+            ):
                 continue
             if genre_id in catalog.NON_GENRES:
                 continue
@@ -201,14 +207,23 @@ def import_names(names, albums, state_sets, enqueue_related=None):
                 continue
             core = catalog.core_title(title)
             norm = catalog.normalize(title)
-            if norm in existing_titles or core in existing_cores:
+            artist_key = catalog.normalize(display)
+            # Same title on another rapper is still their album. Only collapse
+            # duplicates for this artist (standard vs deluxe, clean vs explicit).
+            if (norm, artist_key) in existing_pairs or (core, artist_key) in existing_pairs or core in seen_cores:
                 continue
             date = release.get("release_date") or ""
             year = int(date[:4]) if date[:4].isdigit() else 0
-            if year and year < 1988:
+            if year and year < catalog.MIN_YEAR:
                 continue
+            seen_cores.add(core)
             picked.append(release)
         picked.sort(key=lambda row: row.get("release_date") or "", reverse=True)
+        if len(picked) > catalog.MAX_ALBUMS_PER_ARTIST:
+            print(
+                f"  keeping {catalog.MAX_ALBUMS_PER_ARTIST} of {len(picked)} projects for {display}",
+                flush=True,
+            )
         count = 0
         for release in picked[: catalog.MAX_ALBUMS_PER_ARTIST]:
             title = (release.get("title") or "").strip()
@@ -217,7 +232,7 @@ def import_names(names, albums, state_sets, enqueue_related=None):
             except Exception as error:
                 print("  tracks failed", title, error, flush=True)
                 continue
-            if len(songs) < 6 or len(songs) > 32:
+            if len(songs) < catalog.MIN_TRACKS or len(songs) > catalog.MAX_TRACKS:
                 continue
             date = release.get("release_date") or ""
             year = int(date[:4]) if date[:4].isdigit() else 0
@@ -232,25 +247,37 @@ def import_names(names, albums, state_sets, enqueue_related=None):
                 "cover": cover,
                 "songs": songs,
             })
-            existing_titles.add(catalog.normalize(title))
+            title_key = catalog.normalize(title)
+            artist_key = catalog.normalize(display)
+            existing_titles.add(title_key)
             existing_cores.add(catalog.core_title(title))
+            existing_pairs.add((title_key, artist_key))
+            existing_pairs.add((catalog.core_title(title), artist_key))
             count += 1
             added += 1
             print(f"  + {title}", flush=True)
             time.sleep(0.1)
         if count == 0:
+            existing_artists.discard(display_key)
+            if display in found:
+                found.remove(display)
             print("  no albums", flush=True)
+        else:
+            for part in catalog.re.split(r"\s+&\s+", display):
+                existing_artists.add(catalog.normalize(part))
         time.sleep(0.2)
     return max_id, added, found
 
 
 def save_albums(albums):
     path = BASE / "js" / "albums.js"
-    text = "const albums = " + json.dumps(albums, separators=(",", ":")) + ";\n"
+    text = "const albums = " + json.dumps(albums, separators=(",", ":"), ensure_ascii=False) + ";\n"
+    tmp = path.with_suffix(".js.tmp")
     last_error = None
     for attempt in range(8):
         try:
-            path.write_text(text, encoding="utf-8")
+            tmp.write_text(text, encoding="utf-8")
+            os.replace(tmp, path)
             return
         except OSError as error:
             last_error = error
@@ -358,7 +385,10 @@ def main():
     existing_pairs = set()
     existing_artists = set()
     for album in albums:
-        existing_artists.add(catalog.normalize(album["artist"]))
+        artist_key = catalog.normalize(album["artist"])
+        existing_pairs.add((catalog.normalize(album["title"]), artist_key))
+        existing_pairs.add((catalog.core_title(album["title"]), artist_key))
+        existing_artists.add(artist_key)
         for part in catalog.re.split(r"\s+&\s+", album["artist"]):
             existing_artists.add(catalog.normalize(part))
     state = (max_id, existing_titles, existing_cores, existing_pairs, existing_artists)

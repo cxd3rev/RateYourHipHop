@@ -1116,19 +1116,24 @@ h1 {
 
 
 .song-rater-score {
-    display: flex;
+    display: grid;
 
-    flex-direction: row;
-
-    flex-wrap: nowrap;
+    grid-template-columns: 1fr auto 1fr;
 
     align-items: center;
 
-    justify-content: center;
+    align-self: stretch;
 
-    gap: 2px;
+    width: 100%;
 
-    max-width: 100%;
+    column-gap: 2px;
+}
+
+
+.song-rater-score > .song-rater-value {
+    grid-column: 2;
+
+    justify-self: center;
 }
 
 
@@ -4757,16 +4762,20 @@ html.poster-open {
     display: none;
 }
 
+body.is-rating .song-rater-score .song-save {
+    grid-column: 3;
+    justify-self: start;
+}
+
 body.is-rating .song-save {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto;
     width: 44px;
     height: 44px;
     min-width: 44px;
     min-height: 44px;
-    margin: 0 0 6px;
+    margin: 0;
     padding: 0;
     border: 0;
     border-radius: 50%;
@@ -4774,7 +4783,6 @@ body.is-rating .song-save {
     color: #fff;
     font-family: inherit;
     position: relative;
-    align-self: center;
 }
 
 body.is-rating .song-save-star {

@@ -2,6 +2,7 @@ import json
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -18,12 +19,18 @@ SKIP_TITLE = re.compile(
     r"\bbeats\b|ringtones?|refill|curtain call|"
     r"edited version|explicit version|explicit booklet|"
     r"int'?l version|international version|"
-    r"beginner's guide|back to the roots|spotify sessions",
+    r"beginner's guide|back to the roots|spotify sessions|"
+    r"re-?recorded|sped up|slowed|nightcore|tiktok|hi-five|"
+    r"\bessential\b|\blive$|12[\"”]",
     re.I,
 )
 NON_GENRES = {85, 98, 106, 113, 129, 132, 169, 173, 466, 2}
 HIPHOP_GENRE_IDS = {116}  # Deezer Rap/Hip Hop
-MAX_ALBUMS_PER_ARTIST = 12
+# Full projects for artists added in a run. 1–2 track singles stay out.
+MAX_ALBUMS_PER_ARTIST = 120
+MIN_TRACKS = 3
+MAX_TRACKS = 40
+MIN_YEAR = 1979
 
 
 def genre_name_is_hiphop(name: str) -> bool:
@@ -135,9 +142,23 @@ NEW_ARTISTS = [
 
 
 def get_json(url: str):
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    last_error = None
+    for attempt in range(6):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            last_error = error
+            if error.code not in (429, 500, 502, 503, 504) or attempt == 5:
+                raise
+            time.sleep(1.2 * (attempt + 1))
+        except Exception as error:
+            last_error = error
+            if attempt == 5:
+                raise
+            time.sleep(0.8 * (attempt + 1))
+    raise last_error
 
 
 def normalize(text: str) -> str:
@@ -160,10 +181,12 @@ def search_artist_id(name: str):
     wanted = normalize(name)
     best = None
     best_score = -1
+    exact = []
     for item in data.get("data") or []:
         got = normalize(item.get("name") or "")
         if got == wanted:
-            return item.get("id"), item.get("name") or name
+            exact.append(item)
+            continue
         if wanted in got or got in wanted:
             score = 80
         else:
@@ -174,6 +197,11 @@ def search_artist_id(name: str):
         if score > best_score:
             best_score = score
             best = item
+    if exact:
+        # Punctuation twins ("Kool G. Rap" vs "Kool G Rap") normalize the same.
+        # Keep the profile listeners actually follow.
+        chosen = max(exact, key=lambda item: item.get("nb_fan") or 0)
+        return chosen.get("id"), chosen.get("name") or name
     if best and best_score >= 55:
         return best.get("id"), best.get("name") or name
     return None, None
@@ -186,8 +214,8 @@ def artist_albums(artist_id: int):
         data = get_json(url)
         seen.extend(data.get("data") or [])
         url = (data.get("next") or "").replace("http://", "https://")
-        time.sleep(0.2)
-        if len(seen) > 140:
+        time.sleep(0.15)
+        if len(seen) > 400:
             break
     return seen
 
@@ -216,8 +244,6 @@ def should_skip_title(title: str) -> bool:
     if SKIP_TITLE.search(title or ""):
         return True
     lowered = title.lower()
-    if lowered.endswith(" ep"):
-        return True
     if " edition" in lowered or " version" in lowered:
         return True
     return False
@@ -300,12 +326,14 @@ def main():
         for release in releases:
             title = (release.get("title") or "").strip()
             record_type = (release.get("record_type") or "").lower()
-            tracks_n = release.get("nb_tracks") or 0
+            tracks_n = release.get("nb_tracks")
             genre_id = release.get("genre_id")
             release_artist = ((release.get("artist") or {}).get("name") or "")
-            if record_type not in {"album", "mixtape", ""}:
+            if record_type not in {"album", "mixtape", "ep", ""}:
                 continue
-            if tracks_n and (tracks_n < 6 or tracks_n > 32):
+            if isinstance(tracks_n, int) and tracks_n > 0 and (
+                tracks_n < MIN_TRACKS or tracks_n > MAX_TRACKS
+            ):
                 continue
             if genre_id in NON_GENRES:
                 continue
@@ -323,7 +351,7 @@ def main():
                 continue
             date = release.get("release_date") or ""
             year = int(date[:4]) if date[:4].isdigit() else 0
-            if year and year < 1988:
+            if year and year < MIN_YEAR:
                 continue
             picked.append(release)
 
@@ -357,7 +385,7 @@ def main():
             except Exception as error:
                 print("  tracks failed", title, error, flush=True)
                 continue
-            if len(songs) < 6 or len(songs) > 32:
+            if len(songs) < MIN_TRACKS or len(songs) > MAX_TRACKS:
                 continue
             max_id += 1
             entry = {
