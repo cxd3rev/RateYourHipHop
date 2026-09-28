@@ -214,7 +214,16 @@ function isSongSaved(albumId, songIndex) {
     return savedSongEntries().some(item => item.id === id);
 }
 
+function syncRateSongSaveButton() {
+    const btn = document.getElementById("rateSongSave");
+    if (!btn || typeof currentAlbum === "undefined" || !currentAlbum) {
+        return;
+    }
+    btn.dataset.saveSong = songSaveId(currentAlbum.id, currentSongIndex);
+}
+
 function refreshSongSaveButtons() {
+    syncRateSongSaveButton();
     document.querySelectorAll("[data-save-song]").forEach(btn => {
         const parts = String(btn.dataset.saveSong || "").split(":");
         const saved = isSongSaved(parts[0], parts[1]);
@@ -1754,32 +1763,14 @@ function renderProfilePosters() {
 function fitPosterType(root) {
     const tracks = root.querySelector(".poster-tracks");
     const cover = root.querySelector(".poster-cover");
-    if (!tracks) {
-        return;
+    if (cover) {
+        cover.style.height = "";
+        cover.style.width = "";
+        cover.style.maxWidth = "";
     }
-    const rows = tracks.querySelectorAll("li");
-    if (!rows.length) {
-        return;
-    }
-    const apply = () => {
-        const height = rows[0].getBoundingClientRect().height;
-        const size = Math.min(13, Math.max(8, height * 0.72));
-        tracks.style.fontSize = `${size}px`;
-        tracks.style.lineHeight = "1";
-        return height;
-    };
-    let height = apply();
-    let guard = 0;
-    while (height < 11 && cover && guard < 14) {
-        const box = cover.getBoundingClientRect();
-        if (box.height <= 52) {
-            break;
-        }
-        const next = Math.max(52, box.height - 8);
-        cover.style.height = `${next}px`;
-        cover.style.width = `${next}px`;
-        height = apply();
-        guard += 1;
+    if (tracks) {
+        tracks.style.fontSize = "";
+        tracks.style.lineHeight = "";
     }
 }
 

@@ -2330,6 +2330,10 @@ function updateRateStage() {
 
     document.body.classList.add("is-rating");
 
+    if (typeof refreshSongSaveButtons === "function") {
+        refreshSongSaveButtons();
+    }
+
 }
 
 
@@ -2369,11 +2373,6 @@ function renderSongs() {
                     currentAlbum.id,
                     index
                 );
-
-            const songSaved =
-                typeof isSongSaved === "function"
-                && isSongSaved(currentAlbum.id, index);
-
 
             return `
 
@@ -2432,18 +2431,6 @@ function renderSongs() {
                         </div>
 
                     </div>
-
-                    <button
-                        type="button"
-                        class="song-save ${songSaved ? "is-saved" : ""}"
-                        data-save-song="${currentAlbum.id}:${index}"
-                        aria-pressed="${songSaved ? "true" : "false"}"
-                        aria-label="${songSaved ? "Saved" : "Save song"}"
-                        onclick="event.stopPropagation(); saveRatedSong(${currentAlbum.id}, ${index}, event)"
-                    >
-                        <span class="song-save-star" aria-hidden="true">★</span>
-                        <span class="song-save-label">Save song</span>
-                    </button>
 
                     <div class="song-score song-score-friends">
                         —

@@ -39,15 +39,15 @@
 
     <link
         rel="stylesheet"
-        href="css/style.css?v=68"
+        href="css/style.css?v=71"
     >
 
     <script src="js/albums.js?v=56" defer></script>
     <script src="js/artistPhotos.js?v=44" defer></script>
     <script src="js/globalRatings.js?v=53" defer></script>
     <script src="js/genres.js?v=44" defer></script>
-    <script src="js/script.js?v=51" defer></script>
-    <script src="js/rated-ui.js?v=60" defer></script>
+    <script src="js/script.js?v=53" defer></script>
+    <script src="js/rated-ui.js?v=63" defer></script>
 
 </head>
 
@@ -309,12 +309,26 @@
                         YOUR RATING
                     </span>
 
-                    <span
-                        id="inlineRatingValue"
-                        class="song-rater-value"
-                    >
-                        5.0
-                    </span>
+                    <div class="song-rater-score">
+                        <span
+                            id="inlineRatingValue"
+                            class="song-rater-value"
+                        >
+                            5.0
+                        </span>
+                        <button
+                            type="button"
+                            id="rateSongSave"
+                            class="song-save"
+                            data-save-song=""
+                            aria-pressed="false"
+                            aria-label="Save song"
+                            onclick="saveRatedSong(currentAlbum.id, currentSongIndex, event)"
+                        >
+                            <span class="song-save-star" aria-hidden="true">★</span>
+                            <span class="song-save-label">Save song</span>
+                        </button>
+                    </div>
 
                 </div>
 
@@ -761,19 +775,32 @@
 
     <div class="profile-header" id="profileHeader">
 
-        <button
-            type="button"
-            class="icon-button profile-edit-btn"
-            id="profileEditBtn"
-            onclick="toggleProfileEditMode()"
-            aria-label="Edit profile"
-            aria-pressed="false"
-        >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 20h4.5L19 9.5 14.5 5 4 15.5V20z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                <path d="M12.5 7l4.5 4.5" stroke="currentColor" stroke-width="1.6"/>
-            </svg>
-        </button>
+        <div class="profile-header-tools">
+            <button
+                type="button"
+                class="icon-button profile-account-btn"
+                onclick="openAuth()"
+                aria-label="Account"
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="8" r="3.25" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M5.2 19.2c1.15-3.15 3.45-4.7 6.8-4.7s5.65 1.55 6.8 4.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <button
+                type="button"
+                class="icon-button profile-edit-btn"
+                id="profileEditBtn"
+                onclick="toggleProfileEditMode()"
+                aria-label="Edit profile"
+                aria-pressed="false"
+            >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 20h4.5L19 9.5 14.5 5 4 15.5V20z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path d="M12.5 7l4.5 4.5" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+            </button>
+        </div>
 
         <div class="profile-avatar-wrap">
             <div id="profileAvatar" class="profile-avatar"></div>
@@ -816,10 +843,9 @@
         <div id="profileTasteTags" class="profile-taste-tags"></div>
 
         <div class="profile-actions-row">
-            <button type="button" class="text-button" onclick="showArtists()">Artists</button>
-            <button type="button" class="text-button" onclick="showPerfectAlbums()">10/10</button>
+            <button type="button" class="profile-saved-songs-btn" onclick="showArtists()">Artists</button>
+            <button type="button" class="profile-saved-songs-btn" onclick="showPerfectAlbums()">10/10</button>
             <button type="button" class="profile-saved-songs-btn" onclick="showProfileSavedSongs()">Saved Songs</button>
-            <button type="button" class="text-button" onclick="openAuth()">Account</button>
             <button type="button" class="text-button danger" onclick="logout()">Log out</button>
         </div>
     </div>
