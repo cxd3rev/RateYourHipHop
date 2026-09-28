@@ -14,6 +14,8 @@ let profileSort = localStorage.getItem("profileSort") || "newest";
 let profileCollectionTab = "albums";
 let searchOpen = false;
 let tracklistPanelOpen = false;
+let posterFitObserver = null;
+let posterFitLock = false;
 
 /* ---------- local saves (independent of rating) ---------- */
 
@@ -1760,17 +1762,128 @@ function renderProfilePosters() {
     paintPosterColors(grid);
 }
 
+function posterWheelBlock(event) {
+    event.preventDefault();
+}
+
+function lockPosterScroll(modal) {
+    modal.addEventListener("wheel", posterWheelBlock, { passive: false });
+    modal.addEventListener("touchmove", posterWheelBlock, { passive: false });
+}
+
+function unlockPosterScroll(modal) {
+    modal.removeEventListener("wheel", posterWheelBlock, { passive: false });
+    modal.removeEventListener("touchmove", posterWheelBlock, { passive: false });
+}
+
+function posterOverflow(nodes) {
+    let max = 0;
+    nodes.forEach(node => {
+        if (!node) {
+            return;
+        }
+        max = Math.max(max, node.scrollHeight - node.clientHeight);
+    });
+    return max;
+}
+
 function fitPosterType(root) {
-    const tracks = root.querySelector(".poster-tracks");
-    const cover = root.querySelector(".poster-cover");
-    if (cover) {
-        cover.style.height = "";
-        cover.style.width = "";
-        cover.style.maxWidth = "";
+    if (!root || posterFitLock) {
+        return;
     }
-    if (tracks) {
-        tracks.style.fontSize = "";
-        tracks.style.lineHeight = "";
+    const card = root.querySelector(".poster-card");
+    const page = root.querySelector(".poster-page");
+    const cover = root.querySelector(".poster-cover");
+    const tracks = root.querySelector(".poster-tracks");
+    if (!card || !page || !cover || !tracks || page.clientHeight < 40) {
+        return;
+    }
+
+    const observing = posterFitObserver;
+    if (observing) {
+        observing.disconnect();
+    }
+    posterFitLock = true;
+    try {
+        const items = tracks.querySelectorAll("li");
+        const steps = [
+            { font: 11, lh: 1.05, pad: 1 },
+            { font: 10, lh: 1.02, pad: 0 },
+            { font: 9, lh: 1, pad: 0 },
+            { font: 8, lh: 1, pad: 0 }
+        ];
+        const pageStyle = getComputedStyle(page);
+        const cap = Math.max(0, Math.floor(
+            page.clientWidth
+            - parseFloat(pageStyle.paddingLeft)
+            - parseFloat(pageStyle.paddingRight)
+        ));
+
+        const applyStep = step => {
+            tracks.style.fontSize = step.font + "px";
+            tracks.style.lineHeight = String(step.lh);
+            items.forEach(li => {
+                li.style.padding = step.pad + "px 0";
+                li.style.fontSize = "inherit";
+                li.style.lineHeight = "inherit";
+            });
+        };
+
+        const setCover = px => {
+            const size = Math.max(0, Math.round(px));
+            cover.style.flex = "0 0 auto";
+            cover.style.width = size + "px";
+            cover.style.height = size + "px";
+            cover.style.maxWidth = "100%";
+            cover.style.maxHeight = size + "px";
+            cover.style.minWidth = "0";
+            cover.style.minHeight = "0";
+            return size;
+        };
+
+        const largestCover = () => {
+            let lo = 0;
+            let hi = cap;
+            let best = 0;
+            while (lo <= hi) {
+                const mid = Math.floor((lo + hi) / 2);
+                setCover(mid);
+                if (posterOverflow([card, page, tracks]) <= 0) {
+                    best = mid;
+                    lo = mid + 1;
+                } else {
+                    hi = mid - 1;
+                }
+            }
+            setCover(best);
+            return best;
+        };
+
+        applyStep(steps[0]);
+        largestCover();
+        for (let i = 1; i < steps.length && posterOverflow([card, page, tracks]) > 0; i++) {
+            applyStep(steps[i]);
+            largestCover();
+        }
+    } finally {
+        posterFitLock = false;
+        if (observing && posterFitObserver === observing) {
+            observing.observe(root);
+        }
+    }
+}
+
+function schedulePosterFit(body) {
+    const fit = () => {
+        const modal = document.getElementById("posterModal");
+        if (!modal || modal.classList.contains("hidden")) {
+            return;
+        }
+        fitPosterType(body);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(fit));
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(fit);
     }
 }
 
@@ -1786,9 +1899,15 @@ function openPosterModal(albumId) {
     modal.classList.remove("hidden");
     document.documentElement.classList.add("poster-open");
     document.body.classList.add("poster-open");
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => fitPosterType(body));
-    });
+    unlockPosterScroll(modal);
+    lockPosterScroll(modal);
+    if (posterFitObserver) {
+        posterFitObserver.disconnect();
+    }
+    posterFitObserver = new ResizeObserver(() => fitPosterType(body));
+    posterFitObserver.observe(body);
+    fitPosterType(body);
+    schedulePosterFit(body);
 }
 
 function flipPosterCard(flip) {
@@ -1800,7 +1919,12 @@ function flipPosterCard(flip) {
 
 function closePosterModal() {
     const modal = document.getElementById("posterModal");
+    if (posterFitObserver) {
+        posterFitObserver.disconnect();
+        posterFitObserver = null;
+    }
     if (modal) {
+        unlockPosterScroll(modal);
         modal.classList.add("hidden");
     }
     document.documentElement.classList.remove("poster-open");
