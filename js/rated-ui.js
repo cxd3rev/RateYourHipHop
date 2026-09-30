@@ -1799,7 +1799,7 @@ function posterScoreRow(yours) {
 
 function posterLogoRow() {
     return `
-        <div class="poster-score-row poster-logo-row">
+        <div class="poster-brand">
             <img class="poster-logo" src="assets/rated-mark-light.png?v=49" alt="RATED">
         </div>
     `;
