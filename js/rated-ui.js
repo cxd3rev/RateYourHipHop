@@ -1349,7 +1349,7 @@ function renderTasteProfile() {
                 <span class="taste-profile-stat-label">Albums</span>
             </div>
             <div class="taste-profile-stat">
-                <span class="taste-profile-stat-value">${formatTasteRating(data.overallAverage)}</span>
+                <span class="taste-profile-stat-value" style="${scoreColorStyle(data.overallAverage)}">${formatTasteRating(data.overallAverage)}</span>
                 <span class="taste-profile-stat-label">Average</span>
             </div>
             <div class="taste-profile-stat">
@@ -1357,11 +1357,11 @@ function renderTasteProfile() {
                 <span class="taste-profile-stat-label">Genres</span>
             </div>
             <div class="taste-profile-stat">
-                <span class="taste-profile-stat-value">${formatTasteRating(data.highest)}</span>
+                <span class="taste-profile-stat-value" style="${scoreColorStyle(data.highest)}">${formatTasteRating(data.highest)}</span>
                 <span class="taste-profile-stat-label">Highest</span>
             </div>
             <div class="taste-profile-stat">
-                <span class="taste-profile-stat-value">${formatTasteRating(data.lowest)}</span>
+                <span class="taste-profile-stat-value" style="${scoreColorStyle(data.lowest)}">${formatTasteRating(data.lowest)}</span>
                 <span class="taste-profile-stat-label">Lowest</span>
             </div>
         </div>
@@ -1375,7 +1375,7 @@ function renderTasteProfile() {
             : (album.cover || "");
         return `
             <button type="button" class="taste-rating-row" onclick="openAlbum(${album.id}, false, true)">
-                <span class="taste-rating-score">${formatTasteRating(rating)}</span>
+                <span class="taste-rating-score" style="${scoreColorStyle(rating)}">${formatTasteRating(rating)}</span>
                 <span class="taste-rating-bar-track" aria-hidden="true">
                     <span class="taste-rating-bar-fill" style="width:${width}%;background:${barColor}"></span>
                 </span>
@@ -1398,7 +1398,7 @@ function renderTasteProfile() {
                     <span class="taste-genre-bar-track" aria-hidden="true">
                         <span class="taste-genre-bar-fill" style="width:${width}%;background:${barColor}"></span>
                     </span>
-                    <span class="taste-genre-score">${formatTasteRating(average)}</span>
+                    <span class="taste-genre-score" style="${scoreColorStyle(average)}">${formatTasteRating(average)}</span>
                 </div>
             `;
         }).join("")
