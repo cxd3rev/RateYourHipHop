@@ -1369,6 +1369,7 @@ function renderTasteProfile() {
 
     const ratingsHtml = data.ratedRows.map(({ album, rating }) => {
         const width = Math.max(0, Math.min(100, (rating / 10) * 100));
+        const barColor = ratingColorValue(rating);
         const cover = typeof coverSrc === "function"
             ? coverSrc(album.cover, 120)
             : (album.cover || "");
@@ -1376,7 +1377,7 @@ function renderTasteProfile() {
             <button type="button" class="taste-rating-row" onclick="openAlbum(${album.id}, false, true)">
                 <span class="taste-rating-score">${formatTasteRating(rating)}</span>
                 <span class="taste-rating-bar-track" aria-hidden="true">
-                    <span class="taste-rating-bar-fill" style="width:${width}%"></span>
+                    <span class="taste-rating-bar-fill" style="width:${width}%;background:${barColor}"></span>
                 </span>
                 <img class="taste-rating-cover" src="${cover}" alt="" loading="lazy" width="40" height="40">
                 <span class="taste-rating-meta">
@@ -1390,11 +1391,12 @@ function renderTasteProfile() {
     const genresHtml = data.genres.length
         ? data.genres.map(({ tag, average }) => {
             const width = Math.max(0, Math.min(100, (average / 10) * 100));
+            const barColor = ratingColorValue(average);
             return `
                 <div class="taste-genre-row">
                     <span class="taste-genre-name">${escapeHtml(tag)}</span>
                     <span class="taste-genre-bar-track" aria-hidden="true">
-                        <span class="taste-genre-bar-fill" style="width:${width}%"></span>
+                        <span class="taste-genre-bar-fill" style="width:${width}%;background:${barColor}"></span>
                     </span>
                     <span class="taste-genre-score">${formatTasteRating(average)}</span>
                 </div>
