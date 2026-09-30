@@ -1795,9 +1795,9 @@ function posterScoreRow(yours) {
     const text = posterScoreText(yours);
     return `
         <div class="poster-score-row">
+            ${posterLogoImg()}
             <div class="poster-score-stack">
                 <strong${posterScoreStyleAttr(yours)}>${text}</strong>
-                ${posterLogoImg()}
             </div>
         </div>
     `;

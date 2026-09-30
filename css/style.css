@@ -4028,7 +4028,7 @@ body {
     display: flex;
     flex-direction: row;
     align-items: flex-end;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 6px;
     width: 100%;
     font-size: 18px;
@@ -4059,11 +4059,16 @@ body {
     object-position: right center;
 }
 
-.poster-score-stack .poster-logo,
-.poster-score-row .poster-logo {
+.poster-score-stack .poster-logo {
     height: 15px;
     margin: 0;
     object-position: right center;
+}
+
+.poster-score-row > .poster-logo {
+    height: 15px;
+    margin: 0;
+    object-position: left center;
 }
 
 .poster-meta {
