@@ -3856,14 +3856,35 @@ body {
     letter-spacing: 0.02em;
 }
 
+.poster-title-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+}
+
 .poster-title {
     font-family: var(--font-display);
     font-size: 18px;
     line-height: 1.05;
-    margin: 2px 0 8px;
+    margin: 2px 0 0;
     text-transform: uppercase;
     overflow-wrap: anywhere;
     word-break: break-word;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.poster-title-score {
+    flex: 0 0 auto;
+    font-size: 18px;
+    line-height: 1.05;
+    margin: 2px 0 0;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    text-align: right;
 }
 
 .poster-scores {
@@ -3892,6 +3913,10 @@ body {
     width: 100%;
     font-size: 18px;
     line-height: 1;
+}
+
+.poster-logo-row {
+    justify-content: flex-end;
 }
 
 .poster-score-you strong {
@@ -3991,6 +4016,11 @@ body {
     line-height: 1.02;
 }
 
+.poster-card.is-large .poster-title-score {
+    font-size: 32px;
+    line-height: 1.02;
+}
+
 .poster-card.is-large .poster-artist {
     font-size: 14px;
 }
@@ -4020,7 +4050,13 @@ body {
 .poster-card.is-large .poster-title {
     font-size: 34px;
     line-height: 1.02;
-    margin: 4px 0 14px;
+    margin: 4px 0 0;
+}
+
+.poster-card.is-large .poster-title-score {
+    font-size: 34px;
+    line-height: 1.02;
+    margin: 4px 0 0;
 }
 
 .poster-card.is-large .poster-score-you span,
@@ -4610,7 +4646,8 @@ body.is-rating #albumResult:not(.hidden) {
 
 .poster-card.is-light,
 .poster-card.is-light .poster-face,
-.poster-card.is-light .poster-score-row strong {
+.poster-card.is-light .poster-score-row strong,
+.poster-card.is-light .poster-title-score {
     color: #141414;
 }
 
@@ -4721,7 +4758,13 @@ html.poster-open {
 .poster-modal .poster-card.is-large .poster-title {
     font-size: 28px;
     line-height: 1.02;
-    margin: 2px 0 8px;
+    margin: 2px 0 0;
+}
+
+.poster-modal .poster-card.is-large .poster-title-score {
+    font-size: 28px;
+    line-height: 1.02;
+    margin: 2px 0 0;
 }
 
 .poster-modal .poster-card.is-large .poster-artist {

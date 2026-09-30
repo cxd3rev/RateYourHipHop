@@ -1777,11 +1777,29 @@ function getRatedAlbumsForProfile() {
     });
 }
 
+function posterScoreText(yours) {
+    return yours !== null && yours !== undefined ? Number(yours).toFixed(1) : "—";
+}
+
+function posterScoreStyleAttr(yours) {
+    return yours !== null && yours !== undefined
+        ? ` style="${scoreColorStyle(yours)}"`
+        : "";
+}
+
 function posterScoreRow(yours) {
-    const text = yours !== null && yours !== undefined ? Number(yours).toFixed(1) : "—";
+    const text = posterScoreText(yours);
     return `
         <div class="poster-score-row">
-            <strong>${text}</strong>
+            <strong${posterScoreStyleAttr(yours)}>${text}</strong>
+            <img class="poster-logo" src="assets/rated-mark-light.png?v=49" alt="RATED">
+        </div>
+    `;
+}
+
+function posterLogoRow() {
+    return `
+        <div class="poster-score-row poster-logo-row">
             <img class="poster-logo" src="assets/rated-mark-light.png?v=49" alt="RATED">
         </div>
     `;
@@ -1895,9 +1913,12 @@ function posterCover(album, large) {
 function posterCopy(album, yours) {
     return `
         <div class="poster-copy">
-            <h3 class="poster-title">${escapeHtml(album.title)}</h3>
+            <div class="poster-title-row">
+                <h3 class="poster-title">${escapeHtml(album.title)}</h3>
+                <strong class="poster-title-score"${posterScoreStyleAttr(yours)}>${posterScoreText(yours)}</strong>
+            </div>
             <p class="poster-artist">${escapeHtml(album.artist)}</p>
-            ${posterScoreRow(yours)}
+            ${posterLogoRow()}
         </div>
     `;
 }
