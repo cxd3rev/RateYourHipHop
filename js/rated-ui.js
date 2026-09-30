@@ -2177,6 +2177,43 @@ function setProfileCollectionTab(tab) {
     renderProfileCollections();
 }
 
+function createSavedAlbumCard(album) {
+    const rating = typeof getAlbumRating === "function" ? getAlbumRating(album.id) : null;
+    const scoreText = posterScoreText(rating);
+    const artistLinks = typeof splitArtistNames === "function"
+        ? splitArtistNames(album.artist)
+            .map(name => `
+                <span
+                    class="artist-link"
+                    data-artist="${encodeURIComponent(name)}"
+                    onclick="openArtistFromEvent(event)"
+                >${escapeHtml(name)}</span>
+            `)
+            .join(" & ")
+        : escapeHtml(album.artist || "");
+
+    return `
+        <div class="saved-album-card" onclick="openAlbum(${album.id}, false)">
+            <img
+                class="saved-album-cover"
+                src="${coverSrc(album.cover)}"
+                alt="${escapeHtml(album.title)}"
+                loading="lazy"
+                decoding="async"
+                width="64"
+                height="64"
+            >
+            <div class="saved-album-copy">
+                <div class="saved-album-title-row">
+                    <h3 class="saved-album-title">${escapeHtml(album.title)}</h3>
+                    <strong class="saved-album-score"${posterScoreStyleAttr(rating)}>${scoreText}</strong>
+                </div>
+                <p class="saved-album-meta">${artistLinks} · ${escapeHtml(String(album.year || ""))}</p>
+            </div>
+        </div>
+    `;
+}
+
 function renderProfileCollections() {
     const box = document.getElementById("profileCollections");
     if (!box) {
@@ -2189,7 +2226,7 @@ function renderProfileCollections() {
         const ids = readSaveList("Albums");
         const list = ids.map(id => albumById.get(Number(id))).filter(Boolean);
         box.innerHTML = list.length
-            ? list.map((album, index) => createAlbumCard(album, false, index + 1)).join("")
+            ? `<div class="saved-album-list">${list.map(album => createSavedAlbumCard(album)).join("")}</div>`
             : `<div class="empty-state">No albums saved to rate later.</div>`;
         return;
     }
