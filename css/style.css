@@ -4163,13 +4163,24 @@ body {
 }
 
 .poster-card.is-large .poster-artist {
-    font-size: 10px;
+    font-size: 16px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .poster-card.is-large .poster-title {
-    font-size: 14px;
-    line-height: 1.05;
+    font-size: 20px;
+    line-height: 1.1;
     margin: 0;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .poster-card.is-large .poster-title-score {
@@ -4884,9 +4895,15 @@ html.poster-open {
 }
 
 .poster-modal .poster-card.is-large .poster-title {
-    font-size: 14px;
-    line-height: 1.05;
+    font-size: 20px;
+    line-height: 1.1;
     margin: 0;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .poster-modal .poster-card.is-large .poster-title-score {
@@ -4896,9 +4913,13 @@ html.poster-open {
 }
 
 .poster-modal .poster-card.is-large .poster-artist {
-    font-size: 10px;
+    font-size: 16px;
     line-height: 1.15;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .poster-modal .poster-card.is-large .poster-brand {
