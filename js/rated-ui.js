@@ -1222,6 +1222,199 @@ function getFriendComparison(albumId) {
     }).filter(entry => entry.user && entry.score !== null);
 }
 
+/* ---------- taste profile (My Ratings) ---------- */
+
+const TASTE_PROFILE_SKIP_GENRES = new Set(["Hip-Hop", "Rap"]);
+
+function tasteProfileTagsForAlbum(album) {
+    let tags = [];
+    try {
+        if (typeof getAlbumGenreTags === "function") {
+            tags = getAlbumGenreTags(album) || [];
+        }
+    } catch (error) {
+        return [];
+    }
+    if (!Array.isArray(tags) || !tags.length) {
+        return [];
+    }
+    const specific = tags.filter(tag => tag && !TASTE_PROFILE_SKIP_GENRES.has(tag));
+    if (specific.length) {
+        return specific;
+    }
+    return tags.filter(Boolean);
+}
+
+function formatTasteRating(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return "—";
+    }
+    return (Math.round(n * 10) / 10).toFixed(1);
+}
+
+function buildTasteProfileData() {
+    const ratedRows = [];
+    const genreSums = Object.create(null);
+    const genreCounts = Object.create(null);
+    let ratingSum = 0;
+    let highest = null;
+    let lowest = null;
+
+    const ratingMap = (typeof guestRatings === "object" && guestRatings) ? guestRatings : {};
+    const ratedIds = Object.keys(ratingMap);
+
+    for (let i = 0; i < ratedIds.length; i++) {
+        const albumId = Number(ratedIds[i]);
+        if (!Number.isFinite(albumId)) {
+            continue;
+        }
+        const album = (typeof albumById !== "undefined" && albumById.get)
+            ? albumById.get(albumId)
+            : null;
+        if (!album) {
+            continue;
+        }
+        const rating = getAlbumRating(albumId);
+        if (rating === null || rating === undefined || !Number.isFinite(Number(rating))) {
+            continue;
+        }
+        const score = Number(rating);
+        ratedRows.push({ album, rating: score });
+        ratingSum += score;
+        if (highest === null || score > highest) {
+            highest = score;
+        }
+        if (lowest === null || score < lowest) {
+            lowest = score;
+        }
+
+        const tags = tasteProfileTagsForAlbum(album);
+        for (let t = 0; t < tags.length; t++) {
+            const tag = tags[t];
+            if (!tag) {
+                continue;
+            }
+            genreSums[tag] = (genreSums[tag] || 0) + score;
+            genreCounts[tag] = (genreCounts[tag] || 0) + 1;
+        }
+    }
+
+    ratedRows.sort((a, b) => b.rating - a.rating || String(a.album.title || "").localeCompare(String(b.album.title || "")));
+
+    const genres = Object.keys(genreCounts)
+        .map(tag => {
+            const count = genreCounts[tag];
+            const avg = Math.round((genreSums[tag] / count) * 10) / 10;
+            return { tag, average: avg, count };
+        })
+        .filter(entry => entry.count > 0)
+        .sort((a, b) => b.average - a.average || a.tag.localeCompare(b.tag));
+
+    const albumsRated = ratedRows.length;
+    return {
+        albumsRated,
+        overallAverage: albumsRated
+            ? Math.round((ratingSum / albumsRated) * 10) / 10
+            : null,
+        genresRated: genres.length,
+        highest,
+        lowest,
+        ratedRows,
+        genres
+    };
+}
+
+function renderTasteProfile() {
+    const root = document.getElementById("tasteProfileSection");
+    if (!root) {
+        return;
+    }
+
+    const data = buildTasteProfileData();
+    if (!data.albumsRated) {
+        root.innerHTML = `
+            <div class="taste-profile-empty">
+                <p class="taste-profile-empty-title">No ratings yet.</p>
+                <p class="taste-profile-empty-copy">Start rating albums to build your music profile.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const statsHtml = `
+        <div class="taste-profile-stats" aria-label="Rating stats">
+            <div class="taste-profile-stat">
+                <span class="taste-profile-stat-value">${data.albumsRated}</span>
+                <span class="taste-profile-stat-label">Albums</span>
+            </div>
+            <div class="taste-profile-stat">
+                <span class="taste-profile-stat-value">${formatTasteRating(data.overallAverage)}</span>
+                <span class="taste-profile-stat-label">Average</span>
+            </div>
+            <div class="taste-profile-stat">
+                <span class="taste-profile-stat-value">${data.genresRated}</span>
+                <span class="taste-profile-stat-label">Genres</span>
+            </div>
+            <div class="taste-profile-stat">
+                <span class="taste-profile-stat-value">${formatTasteRating(data.highest)}</span>
+                <span class="taste-profile-stat-label">Highest</span>
+            </div>
+            <div class="taste-profile-stat">
+                <span class="taste-profile-stat-value">${formatTasteRating(data.lowest)}</span>
+                <span class="taste-profile-stat-label">Lowest</span>
+            </div>
+        </div>
+    `;
+
+    const ratingsHtml = data.ratedRows.map(({ album, rating }) => {
+        const width = Math.max(0, Math.min(100, (rating / 10) * 100));
+        const cover = typeof coverSrc === "function"
+            ? coverSrc(album.cover, 120)
+            : (album.cover || "");
+        return `
+            <button type="button" class="taste-rating-row" onclick="openAlbum(${album.id}, false, true)">
+                <span class="taste-rating-score">${formatTasteRating(rating)}</span>
+                <span class="taste-rating-bar-track" aria-hidden="true">
+                    <span class="taste-rating-bar-fill" style="width:${width}%"></span>
+                </span>
+                <img class="taste-rating-cover" src="${cover}" alt="" loading="lazy" width="40" height="40">
+                <span class="taste-rating-meta">
+                    <span class="taste-rating-title">${escapeHtml(album.title)}</span>
+                    <span class="taste-rating-artist">${escapeHtml(album.artist)}</span>
+                </span>
+            </button>
+        `;
+    }).join("");
+
+    const genresHtml = data.genres.length
+        ? data.genres.map(({ tag, average }) => {
+            const width = Math.max(0, Math.min(100, (average / 10) * 100));
+            return `
+                <div class="taste-genre-row">
+                    <span class="taste-genre-name">${escapeHtml(tag)}</span>
+                    <span class="taste-genre-bar-track" aria-hidden="true">
+                        <span class="taste-genre-bar-fill" style="width:${width}%"></span>
+                    </span>
+                    <span class="taste-genre-score">${formatTasteRating(average)}</span>
+                </div>
+            `;
+        }).join("")
+        : `<p class="taste-profile-muted">No genre tags on your rated albums yet.</p>`;
+
+    root.innerHTML = `
+        <div class="taste-profile-block">
+            <h2 class="taste-profile-heading">My Ratings</h2>
+            ${statsHtml}
+            <div class="taste-ratings-list">${ratingsHtml}</div>
+        </div>
+        <div class="taste-profile-block">
+            <h2 class="taste-profile-heading">Genre Profile</h2>
+            <div class="taste-genre-list">${genresHtml}</div>
+        </div>
+    `;
+}
+
 /* ---------- profile ---------- */
 
 let profileEditMode = false;
@@ -1542,6 +1735,7 @@ function renderProfilePage() {
         taste.innerHTML = chips || `<span class="muted">Rate albums to build taste tags.</span>`;
     }
 
+    renderTasteProfile();
     renderProfilePosters();
     renderProfileCollections();
 }
