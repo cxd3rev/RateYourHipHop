@@ -1709,21 +1709,22 @@ function posterCopy(album, yours) {
 function createPosterCard(album, options = {}) {
     const yours = getAlbumRating(album.id);
     const large = Boolean(options.large);
+    const front = `
+        <div class="poster-face poster-front">
+            ${posterCover(album, large)}
+            ${posterCopy(album, yours)}
+        </div>
+    `;
 
     if (!large) {
         return `
             <article class="poster-card" data-poster-album="${album.id}" onclick="openPosterModal(${album.id})">
-                <div class="poster-face poster-front">
-                    ${posterCover(album, false)}
-                    ${posterCopy(album, yours)}
-                </div>
+                ${front}
             </article>
         `;
     }
 
-    const count = (album.songs || []).length;
-    const density = count > 22 ? "is-dense" : count > 14 ? "is-compact" : "";
-    const tracks = album.songs.map((song, index) => {
+    const tracks = (album.songs || []).map((song, index) => {
         const songScore = getSongRating(album.id, index);
         const scoreText = songScore !== null && songScore !== undefined
             ? Number(songScore).toFixed(1)
@@ -1738,11 +1739,13 @@ function createPosterCard(album, options = {}) {
     }).join("");
 
     return `
-        <article class="poster-card is-large ${density}" data-poster-album="${album.id}" data-track-count="${count}">
-            <div class="poster-page">
-                ${posterCover(album, true)}
-                ${posterCopy(album, yours)}
-                <ol class="poster-tracks">${tracks}</ol>
+        <article class="poster-card is-large" data-poster-album="${album.id}">
+            <div class="poster-flip" onclick="flipPosterCard(this)">
+                ${front}
+                <div class="poster-face poster-back">
+                    <ol class="poster-tracks">${tracks}</ol>
+                    ${posterScoreRow(yours)}
+                </div>
             </div>
         </article>
     `;
@@ -1763,6 +1766,9 @@ function renderProfilePosters() {
 }
 
 function posterWheelBlock(event) {
+    if (event.target && event.target.closest && event.target.closest(".poster-tracks")) {
+        return;
+    }
     event.preventDefault();
 }
 
@@ -1894,6 +1900,10 @@ function openPosterModal(albumId) {
     if (!album || !modal || !body) {
         return;
     }
+    if (posterFitObserver) {
+        posterFitObserver.disconnect();
+        posterFitObserver = null;
+    }
     body.innerHTML = createPosterCard(album, { large: true });
     paintPosterColors(body);
     modal.classList.remove("hidden");
@@ -1901,13 +1911,6 @@ function openPosterModal(albumId) {
     document.body.classList.add("poster-open");
     unlockPosterScroll(modal);
     lockPosterScroll(modal);
-    if (posterFitObserver) {
-        posterFitObserver.disconnect();
-    }
-    posterFitObserver = new ResizeObserver(() => fitPosterType(body));
-    posterFitObserver.observe(body);
-    fitPosterType(body);
-    schedulePosterFit(body);
 }
 
 function flipPosterCard(flip) {
@@ -1926,6 +1929,10 @@ function closePosterModal() {
     if (modal) {
         unlockPosterScroll(modal);
         modal.classList.add("hidden");
+        const body = document.getElementById("posterModalBody");
+        if (body) {
+            body.innerHTML = "";
+        }
     }
     document.documentElement.classList.remove("poster-open");
     document.body.classList.remove("poster-open");

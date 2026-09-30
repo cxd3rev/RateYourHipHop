@@ -3970,15 +3970,16 @@ body {
 
 .poster-card.is-large .poster-back {
     display: flex;
+    flex-direction: column;
     transform: rotateY(180deg);
 }
 
 .poster-card.is-large .poster-tracks {
     position: relative;
     z-index: 2;
-    flex: 0 0 auto;
+    flex: 1;
     min-height: 0;
-    overflow: hidden;
+    overflow: auto;
     font-size: 15px;
     line-height: 1.45;
     margin: 8px 0 12px;
@@ -4582,21 +4583,12 @@ body.is-rating #albumResult:not(.hidden) {
     overflow: hidden;
 }
 
-.poster-face,
-.poster-page {
+.poster-face {
     background: transparent;
 }
 
-.poster-page {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 14px;
-    color: #f5f5f5;
-}
-
 .poster-card.is-large {
-    perspective: none;
+    perspective: 1200px;
     width: min(92vw, 420px);
     max-height: none;
     overflow: visible;
@@ -4605,17 +4597,18 @@ body.is-rating #albumResult:not(.hidden) {
 
 .poster-card.is-large .poster-tracks {
     position: relative;
-    flex: none;
+    z-index: 2;
+    flex: 1;
     min-height: 0;
-    overflow: visible;
-    margin: 4px 0 0;
+    overflow: auto;
+    margin: 8px 0 12px;
     font-size: 15px;
     line-height: 1.45;
     color: inherit;
+    -webkit-overflow-scrolling: touch;
 }
 
 .poster-card.is-light,
-.poster-card.is-light .poster-page,
 .poster-card.is-light .poster-face,
 .poster-card.is-light .poster-score-row strong {
     color: #141414;
@@ -4639,131 +4632,131 @@ html.poster-open {
 }
 
 .poster-modal.modal-overlay {
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
     overflow: hidden;
     overscroll-behavior: none;
     height: 100dvh;
     max-height: 100dvh;
-    padding: 12px 10px;
-    touch-action: none;
+    padding: 16px 12px;
 }
 
 .poster-modal .poster-modal-body {
     width: 100%;
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    margin: 0;
+    max-width: 420px;
+    max-height: min(86dvh, 720px);
+    margin: 0 auto;
     padding: 0;
-    overflow: hidden;
-    overscroll-behavior: none;
+    overflow: visible;
     display: flex;
-    flex-direction: column;
-    touch-action: none;
+    align-items: stretch;
+    justify-content: center;
 }
 
 .poster-modal .poster-card.is-large {
     width: 100%;
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    max-height: 100%;
+    height: min(78dvh, 680px);
+    max-height: min(78dvh, 680px);
     margin: 0;
-    overflow: hidden;
+    overflow: visible;
     border-radius: 18px;
-    display: flex;
-    flex-direction: column;
-    perspective: none;
-    touch-action: none;
+    perspective: 1200px;
 }
 
-.poster-modal .poster-page {
-    flex: 1 1 auto;
+.poster-modal .poster-flip {
+    position: relative;
+    width: 100%;
     height: 100%;
-    min-height: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0.15, 0.2, 1);
+    cursor: pointer;
+}
+
+.poster-modal .poster-card.is-flipped .poster-flip {
+    transform: rotateY(180deg);
+}
+
+.poster-modal .poster-face {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    gap: 6px;
-    padding: 10px 12px 8px;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 18px;
     overflow: hidden;
-    touch-action: none;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: transparent;
+    color: inherit;
+}
+
+.poster-modal .poster-front {
+    transform: rotateY(0deg);
+}
+
+.poster-modal .poster-back {
+    transform: rotateY(180deg);
 }
 
 .poster-modal .poster-cover {
     width: min(100%, 340px);
     height: auto;
     max-width: 100%;
-    max-height: none;
     aspect-ratio: 1;
     align-self: center;
     flex: 0 0 auto;
-    min-width: 0;
-    min-height: 0;
     object-fit: cover;
     border-radius: 14px;
 }
 
 .poster-modal .poster-copy {
-    flex: 0 0 auto;
-    gap: 1px;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     min-height: 0;
 }
 
 .poster-modal .poster-card.is-large .poster-title {
-    font-size: 26px;
-    line-height: 0.92;
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 28px;
+    line-height: 1.02;
+    margin: 2px 0 8px;
 }
 
 .poster-modal .poster-card.is-large .poster-artist {
-    font-size: 12px;
-    line-height: 1.1;
+    font-size: 13px;
+    line-height: 1.15;
     margin: 0;
 }
 
 .poster-modal .poster-card.is-large .poster-score-row {
-    font-size: 28px;
-    margin: 2px 0 0;
+    font-size: 32px;
+    margin-top: auto;
     gap: 8px;
 }
 
 .poster-modal .poster-card.is-large .poster-tracks {
-    position: relative;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
     min-height: 0;
-    height: auto;
-    max-height: none;
-    overflow: hidden;
-    overscroll-behavior: none;
-    touch-action: none;
-    display: block;
-    margin: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    margin: 0 0 10px;
     padding: 0;
-    font-size: 11px;
-    line-height: 1.05;
+    font-size: 14px;
+    line-height: 1.35;
     color: inherit;
+    touch-action: pan-y;
 }
 
 .poster-modal .poster-card.is-large .poster-tracks li {
-    flex: none;
-    min-height: 0;
-    height: auto;
     display: grid;
-    grid-template-columns: 1.7em minmax(0, 1fr) auto;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 6px;
-    padding: 1px 0;
+    gap: 8px;
+    padding: 6px 0;
     font-size: inherit;
     line-height: inherit;
-    overflow: hidden;
 }
 
 .poster-modal .poster-track-name,
