@@ -1912,13 +1912,15 @@ function posterCopy(album, yours) {
     return `
         <div class="poster-copy">
             <div class="poster-title-row">
-                <h3 class="poster-title">${escapeHtml(album.title)}</h3>
+                <div class="poster-heading">
+                    <h3 class="poster-title">${escapeHtml(album.title)}</h3>
+                    <p class="poster-artist">${escapeHtml(album.artist)}</p>
+                </div>
                 <div class="poster-score-stack">
                     <strong class="poster-title-score"${posterScoreStyleAttr(yours)}>${posterScoreText(yours)}</strong>
                     ${posterLogoImg()}
                 </div>
             </div>
-            <p class="poster-artist">${escapeHtml(album.artist)}</p>
         </div>
     `;
 }

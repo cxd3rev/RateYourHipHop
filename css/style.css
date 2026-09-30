@@ -3963,6 +3963,15 @@ body {
     width: 100%;
 }
 
+.poster-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
 .poster-score-stack {
     display: flex;
     flex-direction: column;
@@ -3981,7 +3990,7 @@ body {
 }
 
 .poster-title {
-    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
     font-size: 11px;
     line-height: 1.1;
