@@ -3957,10 +3957,19 @@ body {
 .poster-title-row {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 6px;
     width: 100%;
+}
+
+.poster-score-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex: 0 0 auto;
+    gap: 3px;
+    min-width: 0;
 }
 
 .poster-title,
@@ -4009,8 +4018,8 @@ body {
 .poster-score-row {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-end;
+    justify-content: flex-end;
     gap: 6px;
     width: 100%;
     font-size: 18px;
@@ -4034,16 +4043,17 @@ body {
 }
 
 .poster-logo {
-    height: 11px;
+    height: 15px;
     width: auto;
     flex-shrink: 0;
     object-fit: contain;
-    object-position: left center;
+    object-position: right center;
 }
 
+.poster-score-stack .poster-logo,
 .poster-score-row .poster-logo {
-    height: 1em;
-    margin-left: auto;
+    height: 15px;
+    margin: 0;
     object-position: right center;
 }
 
@@ -4154,8 +4164,10 @@ body {
     margin: 0;
 }
 
-.poster-card.is-large .poster-brand .poster-logo {
-    height: 14px;
+.poster-card.is-large .poster-brand .poster-logo,
+.poster-card.is-large .poster-score-stack .poster-logo,
+.poster-card.is-large .poster-score-row .poster-logo {
+    height: 20px;
 }
 
 .poster-card.is-large .poster-score-you span,
@@ -4164,7 +4176,7 @@ body {
 }
 
 .poster-card.is-large .poster-back .poster-score-row {
-    gap: 8px;
+    gap: 4px;
     font-size: 20px;
     line-height: 1;
     margin-top: auto;
@@ -4879,14 +4891,16 @@ html.poster-open {
     margin-top: 3px;
 }
 
-.poster-modal .poster-card.is-large .poster-brand .poster-logo {
-    height: 14px;
+.poster-modal .poster-card.is-large .poster-brand .poster-logo,
+.poster-modal .poster-card.is-large .poster-score-stack .poster-logo,
+.poster-modal .poster-card.is-large .poster-score-row .poster-logo {
+    height: 20px;
 }
 
 .poster-modal .poster-card.is-large .poster-back .poster-score-row {
     font-size: 20px;
     margin-top: auto;
-    gap: 8px;
+    gap: 4px;
 }
 
 .poster-modal .poster-card.is-large .poster-tracks {

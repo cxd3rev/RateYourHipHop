@@ -1787,20 +1787,18 @@ function posterScoreStyleAttr(yours) {
         : "";
 }
 
+function posterLogoImg() {
+    return `<img class="poster-logo" src="assets/rated-mark-light.png?v=49" alt="RATED">`;
+}
+
 function posterScoreRow(yours) {
     const text = posterScoreText(yours);
     return `
         <div class="poster-score-row">
-            <strong${posterScoreStyleAttr(yours)}>${text}</strong>
-            <img class="poster-logo" src="assets/rated-mark-light.png?v=49" alt="RATED">
-        </div>
-    `;
-}
-
-function posterLogoRow() {
-    return `
-        <div class="poster-brand">
-            <img class="poster-logo" src="assets/rated-mark-light.png?v=49" alt="RATED">
+            <div class="poster-score-stack">
+                <strong${posterScoreStyleAttr(yours)}>${text}</strong>
+                ${posterLogoImg()}
+            </div>
         </div>
     `;
 }
@@ -1915,10 +1913,12 @@ function posterCopy(album, yours) {
         <div class="poster-copy">
             <div class="poster-title-row">
                 <h3 class="poster-title">${escapeHtml(album.title)}</h3>
-                <strong class="poster-title-score"${posterScoreStyleAttr(yours)}>${posterScoreText(yours)}</strong>
+                <div class="poster-score-stack">
+                    <strong class="poster-title-score"${posterScoreStyleAttr(yours)}>${posterScoreText(yours)}</strong>
+                    ${posterLogoImg()}
+                </div>
             </div>
             <p class="poster-artist">${escapeHtml(album.artist)}</p>
-            ${posterLogoRow()}
         </div>
     `;
 }
